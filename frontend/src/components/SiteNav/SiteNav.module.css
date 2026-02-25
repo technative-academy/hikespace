@@ -1,0 +1,29 @@
+.wrapper {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: lightgrey;
+}
+
+.links {
+  display: flex;
+  overflow: scroll;
+}
+
+.activeLink,
+.inactiveLink {
+  padding: 0 2rem;
+}
+
+.activeLink {
+  color: oklch(from RebeccaPurple calc(l + 0.3) c h);
+}
+
+.inactiveLink {
+  color: RebeccaPurple;
+}
+
+:is(.activeLink, .inactiveLink):hover {
+  color: oklch(from RebeccaPurple calc(l - 0.1) c h);
+}
