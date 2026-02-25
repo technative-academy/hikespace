@@ -14,7 +14,6 @@ app.get("/posts", (req, res) => {
     {
       post_id: 1,
       owner_id: 1,
-      participation_id: 1,
       description: "walking in Brighton!",
       route: [[50.828873], [-0.141176]],
       location_name: "Brighton",
@@ -27,7 +26,6 @@ app.get("/posts/:id", (req, res) => {
   res.send({
     post_id: req.params.id,
     owner_id: 1,
-    participation_id: 1,
     description: "walking in Brighton!",
     route: [[50.828873], [-0.141176]],
     location_name: "Brighton",
