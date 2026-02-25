@@ -24,7 +24,7 @@ app.get("/posts", (req, res) => {
 
 app.get("/posts/:id", (req, res) => {
   res.send({
-    post_id: req.params.id,
+    post_id: parseInt(req.params.id),
     owner_id: 1,
     description: "walking in Brighton!",
     route: [[50.828873], [-0.141176]],
@@ -37,12 +37,12 @@ app.post("/upload", (req, res) => {
   res.status(200).send({ status: "OK" });
 });
 
-app.put("/update", (req, res) => {
-  res.status(200).send({ status: "OK" });
+app.put("/update/:id", (req, res) => {
+  res.status(200).send({ post_id: parseInt(req.params.id), status: "OK" });
 });
 
-app.delete("/delete", (req, res) => {
-  res.status(200).send({ status: "OK" });
+app.delete("/delete/:id", (req, res) => {
+  res.status(200).send({ post_id: parseInt(req.params.id), status: "OK" });
 });
 
 app.listen(port, () => {
