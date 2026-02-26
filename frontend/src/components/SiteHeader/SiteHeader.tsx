@@ -18,10 +18,9 @@ export default function SiteHeader() {
       <NavigationMenu className="hidden md:flex">
         <NavigationMenuList>
           {navLinks.map((navLink) => (
-            <NavigationMenuItem>
-              <NavigationMenuLink>
+            <NavigationMenuItem key={navLink.url}>
+              <NavigationMenuLink asChild>
                 <NavLink
-                  key={navLink.url}
                   to={navLink.url}
                 >
                   {navLink.label}
