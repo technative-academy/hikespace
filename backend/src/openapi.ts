@@ -235,54 +235,6 @@ const postPaths = {
   }
 };
 
-const testPaths = {
-  "/upload": {
-    post: {
-      summary: "Upload (test)",
-      tags: ["Test"],
-      requestBody: {
-        required: false,
-        content: {
-          "application/json": {
-            schema: AnyJsonSchema
-          }
-        }
-      },
-      responses: {
-        "200": jsonResponse(StatusOkSchema)
-      }
-    }
-  },
-
-  "/update": {
-    put: {
-      summary: "Update (test)",
-      tags: ["Test"],
-      requestBody: {
-        required: false,
-        content: {
-          "application/json": {
-            schema: AnyJsonSchema
-          }
-        }
-      },
-      responses: {
-        "200": jsonResponse(StatusOkSchema)
-      }
-    }
-  },
-
-  "/delete": {
-    delete: {
-      summary: "Delete (test)",
-      tags: ["Test"],
-      responses: {
-        "200": jsonResponse(StatusOkSchema)
-      }
-    }
-  }
-};
-
 export const openapiDocument = createDocument({
   openapi: "3.0.3",
   info: {
@@ -300,8 +252,7 @@ export const openapiDocument = createDocument({
   paths: {
     ...corePaths,
     ...userPaths,
-    ...postPaths,
-    ...testPaths
+    ...postPaths
   },
 
   components: {
