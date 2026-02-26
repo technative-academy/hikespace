@@ -12,7 +12,7 @@ const routes = [
         element: <Home />,
       },
       {
-        path: "postContent",
+        path: "post/:id",
         element: <PostContent />,
       },
     ],

@@ -1,11 +1,18 @@
+import FeedPost from "@/components/FeedPost/FeedPost";
+import { Grid } from "@/components/Grid/Grid";
+import { VStack } from "@/components/Stack/Stack";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx";
-import FeedPost from "../FeedPost/FeedPost";
-import { Grid } from "../Grid/Grid";
-import { VStack } from "../Stack/Stack";
-import { Button } from "../ui/button";
+import { type Post } from "@/features/post";
+import useSWR from "swr";
 import styles from "./Home.module.css";
 
 function Home() {
+  const { data, error, isLoading } = useSWR<Post[]>("/api/posts");
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
   return (
     <div className={styles.wrapper}>
       <VStack align="start" style={{ margin: "2rem" }}>
@@ -18,18 +25,12 @@ function Home() {
           </TabsList>
           <TabsContent value="feed">
             <Grid minWidth="12rem">
-              <FeedPost title="A Title" caption="Tab 1 caption" />
-              <FeedPost title="A Title" caption="Tab 1 caption" />
-              <FeedPost title="A Title" caption="Tab 1 caption" />
-              <FeedPost title="A Title" caption="Tab 1 caption" />
+              {data!.map((post) => <FeedPost key={post.post_id} post={post} />)}
             </Grid>
           </TabsContent>
           <TabsContent value="following">
             <Grid minWidth="12rem">
-              <FeedPost title="Another title" caption="Tab 2 caption" />
-              <FeedPost title="Another title" caption="Tab 2 caption" />
-              <FeedPost title="Another title" caption="Tab 2 caption" />
-              <FeedPost title="Another title" caption="Tab 2 caption" />
+              {data!.map((post) => <FeedPost key={post.post_id} post={post} />)}
             </Grid>
           </TabsContent>
         </Tabs>
