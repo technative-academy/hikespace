@@ -1,222 +1,236 @@
-import { createDocument } from "zod-openapi";
+﻿import { createDocument } from "zod-openapi";
 import { z } from "zod";
-import { UserSchema, CreateUserSchema } from "./schemas/users.zod.js";
 
-export const openapiDocument = {
+import { CreateUserSchema, PublicUserSchema } from "#modules/user/user.zod.js";
+
+const StatusOkSchema = z
+  .object({ status: z.string() })
+  .meta({ id: "StatusOk", example: { status: "OK" } });
+
+const PointSchema = z
+  .tuple([z.number(), z.number()])
+  .meta({ id: "Point", example: [-0.141176, 50.828873] });
+
+const LineStringCoordsSchema = z
+  .array(PointSchema)
+  .min(2)
+  .meta({
+    id: "LineStringCoords",
+    example: [
+      [-0.141176, 50.828873],
+      [-0.1422, 50.8293],
+      [-0.1431, 50.8302]
+    ]
+  });
+
+const PostSchema = z
+  .object({
+    post_id: z.number().int(),
+    owner_id: z.number().int(),
+    description: z.string(),
+    route: LineStringCoordsSchema,
+    location_name: z.string(),
+    caption: z.string()
+  })
+  .meta({
+    id: "Post",
+    example: {
+      post_id: 1,
+      owner_id: 1,
+      description: "walking in Brighton!",
+      route: [
+        [-0.141176, 50.828873],
+        [-0.1422, 50.8293],
+        [-0.1431, 50.8302]
+      ],
+      location_name: "Brighton",
+      caption: "hi, this is a post about walking in Brighton!"
+    }
+  });
+
+const IdPathParamSchema = z.coerce
+  .number()
+  .int()
+  .positive()
+  .meta({ id: "IdPathParam", example: 1 });
+
+const CreateUserOpenApiSchema = CreateUserSchema.meta({ id: "CreateUser" });
+const PublicUserOpenApiSchema = PublicUserSchema.meta({ id: "PublicUser" });
+
+const AnyJsonSchema = z
+  .record(z.string(), z.any())
+  .meta({ description: "Any JSON" });
+
+const IdPathParams = z.object({ id: IdPathParamSchema });
+
+const jsonResponse = (schema: z.ZodTypeAny, description = "OK") => ({
+  description,
+  content: {
+    "application/json": {
+      schema
+    }
+  }
+});
+
+const textResponse = (schema: z.ZodTypeAny, description = "OK") => ({
+  description,
+  content: {
+    "text/plain": {
+      schema
+    }
+  }
+});
+
+const corePaths = {
+  "/": {
+    get: {
+      summary: "Hello endpoint",
+      tags: ["Core"],
+      responses: {
+        "200": textResponse(z.string().meta({ example: "Hello from Express" }))
+      }
+    }
+  }
+};
+
+const userPaths = {
+  "/users": {
+    post: {
+      summary: "Create user",
+      tags: ["Users"],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: CreateUserOpenApiSchema
+          }
+        }
+      },
+      responses: {
+        "201": jsonResponse(PublicUserOpenApiSchema, "Created"),
+        "400": { description: "Bad request" },
+        "500": { description: "Server error" }
+      }
+    }
+  },
+
+  "/users/{id}": {
+    get: {
+      summary: "Get user by id",
+      tags: ["Users"],
+      requestParams: {
+        path: IdPathParams
+      },
+      responses: {
+        "200": jsonResponse(PublicUserOpenApiSchema),
+        "400": { description: "Bad request" },
+        "404": { description: "Not found" }
+      }
+    }
+  }
+};
+
+const postPaths = {
+  "/posts": {
+    get: {
+      summary: "List posts",
+      tags: ["Posts"],
+      responses: {
+        "200": jsonResponse(z.array(PostSchema))
+      }
+    }
+  },
+
+  "/posts/{id}": {
+    get: {
+      summary: "Get post by id",
+      tags: ["Posts"],
+      requestParams: {
+        path: IdPathParams
+      },
+      responses: {
+        "200": jsonResponse(PostSchema),
+        "404": { description: "Not found" }
+      }
+    }
+  }
+};
+
+const testPaths = {
+  "/upload": {
+    post: {
+      summary: "Upload (test)",
+      tags: ["Test"],
+      requestBody: {
+        required: false,
+        content: {
+          "application/json": {
+            schema: AnyJsonSchema
+          }
+        }
+      },
+      responses: {
+        "200": jsonResponse(StatusOkSchema)
+      }
+    }
+  },
+
+  "/update": {
+    put: {
+      summary: "Update (test)",
+      tags: ["Test"],
+      requestBody: {
+        required: false,
+        content: {
+          "application/json": {
+            schema: AnyJsonSchema
+          }
+        }
+      },
+      responses: {
+        "200": jsonResponse(StatusOkSchema)
+      }
+    }
+  },
+
+  "/delete": {
+    delete: {
+      summary: "Delete (test)",
+      tags: ["Test"],
+      responses: {
+        "200": jsonResponse(StatusOkSchema)
+      }
+    }
+  }
+};
+
+export const openapiDocument = createDocument({
   openapi: "3.0.3",
   info: {
     title: "Test Express API",
     version: "1.0.0"
   },
   servers: [{ url: "http://localhost:3000" }],
+  tags: [
+    { name: "Core" },
+    { name: "Users" },
+    { name: "Posts" },
+    { name: "Test" }
+  ],
+
   paths: {
-    "/": {
-      get: {
-        summary: "Hello endpoint",
-        responses: {
-          "200": {
-            description: "OK",
-            content: {
-              "text/plain": {
-                schema: { type: "string", example: "Hello from Express" }
-              }
-            }
-          }
-        }
-      }
-    },
-
-    "/posts": {
-      get: {
-        summary: "List posts",
-        responses: {
-          "200": {
-            description: "OK",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "array",
-                  items: { $ref: "#/components/schemas/Post" }
-                },
-                example: [
-                  {
-                    post_id: 1,
-                    owner_id: 1,
-                    description: "walking in Brighton!",
-                    route: [
-                      [-0.141176, 50.828873],
-                      [-0.1422, 50.8293],
-                      [-0.1431, 50.8302]
-                    ],
-                    location_name: "Brighton",
-                    caption: "hi, this is a post about walking in Brighton!"
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-
-    "/posts/{id}": {
-      get: {
-        summary: "Get post by id",
-        parameters: [
-          {
-            name: "id",
-            in: "path",
-            required: true,
-            schema: { type: "integer", example: 1 }
-          }
-        ],
-        responses: {
-          "200": {
-            description: "OK",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/Post" },
-                example: {
-                  post_id: 1,
-                  owner_id: 1,
-                  description: "walking in Brighton!",
-                  route: [
-                    [-0.141176, 50.828873],
-                    [-0.1422, 50.8293],
-                    [-0.1431, 50.8302]
-                  ],
-                  location_name: "Brighton",
-                  caption: "hi, this is a post about walking in Brighton!"
-                }
-              }
-            }
-          },
-          "404": { description: "Not found" }
-        }
-      }
-    },
-
-    "/upload": {
-      post: {
-        summary: "Upload (test)",
-        requestBody: {
-          required: false,
-          content: {
-            "application/json": {
-              schema: { type: "object", additionalProperties: true }
-            }
-          }
-        },
-        responses: {
-          "200": {
-            description: "OK",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/StatusOk" },
-                example: { status: "OK" }
-              }
-            }
-          }
-        }
-      }
-    },
-
-    "/update": {
-      put: {
-        summary: "Update (test)",
-        requestBody: {
-          required: false,
-          content: {
-            "application/json": {
-              schema: { type: "object", additionalProperties: true }
-            }
-          }
-        },
-        responses: {
-          "200": {
-            description: "OK",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/StatusOk" },
-                example: { status: "OK" }
-              }
-            }
-          }
-        }
-      }
-    },
-
-    "/delete": {
-      delete: {
-        summary: "Delete (test)",
-        responses: {
-          "200": {
-            description: "OK",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/StatusOk" },
-                example: { status: "OK" }
-              }
-            }
-          }
-        }
-      }
-    }
+    ...corePaths,
+    ...userPaths,
+    ...postPaths,
+    ...testPaths
   },
 
   components: {
     schemas: {
-      StatusOk: {
-        type: "object",
-        required: ["status"],
-        properties: {
-          status: { type: "string", example: "OK" }
-        }
-      },
-
-      // Point as [lng, lat] (GeoJSON / PostGIS convention)
-      Point: {
-        type: "array",
-        minItems: 2,
-        maxItems: 2,
-        items: [{ type: "number" }, { type: "number" }],
-        example: [-0.141176, 50.828873]
-      },
-
-      // LineString coords: array of Points, min 2
-      LineStringCoords: {
-        type: "array",
-        minItems: 2,
-        items: { $ref: "#/components/schemas/Point" },
-        example: [
-          [-0.141176, 50.828873],
-          [-0.1422, 50.8293],
-          [-0.1431, 50.8302]
-        ]
-      },
-
-      Post: {
-        type: "object",
-        required: [
-          "post_id",
-          "owner_id",
-          "description",
-          "route",
-          "location_name",
-          "caption"
-        ],
-        properties: {
-          post_id: { type: "integer", example: 1 },
-          owner_id: { type: "integer", example: 1 },
-          description: { type: "string", example: "walking in Brighton!" },
-          route: { $ref: "#/components/schemas/LineStringCoords" },
-          location_name: { type: "string", example: "Brighton" },
-          caption: {
-            type: "string",
-            example: "hi, this is a post about walking in Brighton!"
-          }
-        }
-      }
+      StatusOk: StatusOkSchema,
+      Point: PointSchema,
+      LineStringCoords: LineStringCoordsSchema,
+      Post: PostSchema
     }
   }
-} as const;
+});
