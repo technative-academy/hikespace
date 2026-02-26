@@ -7,20 +7,21 @@ const StatusOkSchema = z
   .object({ status: z.string() })
   .meta({ id: "StatusOk", example: { status: "OK" } });
 
-const PointSchema = z
-  .tuple([z.number(), z.number()])
-  .meta({ id: "Point", example: [-0.141176, 50.828873] });
-
-const LineStringCoordsSchema = z
-  .array(PointSchema)
-  .min(2)
+const LineStringGeoJSONSchema = z
+  .object({
+    type: z.literal("LineString"),
+    coordinates: z.array(z.tuple([z.number(), z.number()])).min(2)
+  })
   .meta({
-    id: "LineStringCoords",
-    example: [
-      [-0.141176, 50.828873],
-      [-0.1422, 50.8293],
-      [-0.1431, 50.8302]
-    ]
+    id: "LineStringGeoJSON",
+    example: {
+      type: "LineString",
+      coordinates: [
+        [-0.141176, 50.828873],
+        [-0.1422, 50.8293],
+        [-0.1431, 50.8302]
+      ]
+    }
   });
 
 const PostSchema = z
@@ -28,7 +29,7 @@ const PostSchema = z
     id: z.number().int(),
     owner_id: z.number().int(),
     description: z.string(),
-    route: LineStringCoordsSchema,
+    route: LineStringGeoJSONSchema,
     location_name: z.string(),
     caption: z.string()
   })
@@ -38,11 +39,14 @@ const PostSchema = z
       id: 1,
       owner_id: 1,
       description: "walking in Brighton!",
-      route: [
-        [-0.141176, 50.828873],
-        [-0.1422, 50.8293],
-        [-0.1431, 50.8302]
-      ],
+      route: {
+        type: "LineString",
+        coordinates: [
+          [-0.141176, 50.828873],
+          [-0.1422, 50.8293],
+          [-0.1431, 50.8302]
+        ]
+      },
       location_name: "Brighton",
       caption: "hi, this is a post about walking in Brighton!"
     }
@@ -51,7 +55,7 @@ const PostSchema = z
 const CreatePostSchema = z
   .object({
     description: z.string(),
-    route: LineStringCoordsSchema,
+    route: LineStringGeoJSONSchema,
     location_name: z.string(),
     caption: z.string()
   })
@@ -59,11 +63,14 @@ const CreatePostSchema = z
     id: "CreatePost",
     example: {
       description: "walking in Brighton!",
-      route: [
-        [-0.141176, 50.828873],
-        [-0.1422, 50.8293],
-        [-0.1431, 50.8302]
-      ],
+      route: {
+        type: "LineString",
+        coordinates: [
+          [-0.141176, 50.828873],
+          [-0.1422, 50.8293],
+          [-0.1431, 50.8302]
+        ]
+      },
       location_name: "Brighton",
       caption: "hi, this is a post about walking in Brighton!"
     }
@@ -261,8 +268,7 @@ export const openapiDocument = createDocument({
   components: {
     schemas: {
       StatusOk: StatusOkSchema,
-      Point: PointSchema,
-      LineStringCoords: LineStringCoordsSchema,
+      LineStringGeoJSON: LineStringGeoJSONSchema,
       Post: PostSchema,
       CreatePost: CreatePostSchema
     }
