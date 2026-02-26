@@ -3,15 +3,19 @@ import swaggerUi from "swagger-ui-express";
 import { openapiDocument } from "./openapi.js";
 import { drizzle } from "drizzle-orm/node-postgres";
 import userRouter from "#modules/user/user.router.js";
+import { mockAuth } from "./middleware/mock-auth.js";
+import postRouter from "#modules/post/post.router.js";
 
 const app = express();
 app.use(express.json());
+app.use(mockAuth);
 const port = process.env.PORT ?? "3000";
 
 app.get("/openapi.json", (_req, res) => res.json(openapiDocument));
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiDocument));
 
 app.use("/users", userRouter);
+app.use("/posts", postRouter);
 
 app.get("/", (_req, res) => {
   res.send("Hello from Express");
