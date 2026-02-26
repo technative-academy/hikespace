@@ -4,6 +4,7 @@ import styles from "./SiteNav.module.css";
 function SiteNav() {
   const navLinks = [
     { label: "Home", url: "/" },
+    { label: "PostContent", url: "/postContent" }, // for testing purposes, remove later
   ];
   return (
     <div className={styles.wrapper}>
@@ -12,7 +13,9 @@ function SiteNav() {
           <NavLink
             key={navLink.url}
             to={navLink.url}
-            className={({ isActive }) => isActive ? styles.activeLink : styles.inactiveLink}
+            className={({ isActive }) =>
+              isActive ? styles.activeLink : styles.inactiveLink
+            }
           >
             {navLink.label}
           </NavLink>

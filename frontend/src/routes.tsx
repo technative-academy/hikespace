@@ -1,4 +1,5 @@
 import Home from "./components/Home/Home";
+import PostContent from "./components/PostContent/PostContent";
 import Root from "./components/Root/Root";
 
 const routes = [
@@ -9,6 +10,10 @@ const routes = [
       {
         path: "",
         element: <Home />,
+      },
+      {
+        path: "postContent",
+        element: <PostContent />,
       },
     ],
   },
