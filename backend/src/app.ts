@@ -1,9 +1,17 @@
 import express from "express";
+import swaggerUi from "swagger-ui-express";
+import { openapiDocument } from "./openapi.js";
 import { drizzle } from "drizzle-orm/node-postgres";
+import userRouter from "#modules/user/user.router.js";
 
 const app = express();
+app.use(express.json());
 const port = process.env.PORT ?? "3000";
-const db = drizzle(process.env.DATABASE_URL!);
+
+app.get("/openapi.json", (_req, res) => res.json(openapiDocument));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiDocument));
+
+app.use("/users", userRouter);
 
 app.get("/", (_req, res) => {
   res.send("Hello from Express");
