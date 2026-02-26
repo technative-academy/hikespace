@@ -9,7 +9,7 @@ const postRepo = new PostRepository();
 const postService = new PostService(postRepo);
 const postController = new PostController(postService);
 
-router.post("/upload", postController.create);
-router.get("/posts/:id", postController.get);
+router.post("/", postController.create);
+router.get("/:id", postController.get);
 
 export default router;

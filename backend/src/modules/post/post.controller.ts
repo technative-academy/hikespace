@@ -8,6 +8,12 @@ export class PostController {
 
   // POST /upload
   create = async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Unauthorized"
+      });
+    }
+
     const parsedBody = CreatePostSchema.safeParse(req.body);
 
     if (!parsedBody.success) {
@@ -18,7 +24,10 @@ export class PostController {
     }
 
     try {
-      const post = await this.postService.create(parsedBody.data);
+      const post = await this.postService.create({
+        ...parsedBody.data,
+        owner_id: req.user.id
+      });
 
       return res.status(201).json(PostSchema.parse(post));
     } catch (error) {
@@ -43,7 +52,7 @@ export class PostController {
 
     if (!post) {
       return res.status(404).json({
-        message: "User not found"
+        message: "Post not found"
       });
     }
 

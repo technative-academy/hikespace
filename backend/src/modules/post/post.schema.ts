@@ -8,7 +8,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { userTable } from "../user/user.schema.js";
 
-export const postTable = pgTable("Post", {
+export const postTable = pgTable("post", {
   id: serial().primaryKey(),
   owner_id: integer()
     .notNull()
