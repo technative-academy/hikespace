@@ -210,7 +210,7 @@ export const openapiDocument = createDocument({
     title: "Test Express API",
     version: "1.0.0"
   },
-  servers: [{ url: "http://localhost:3000" }],
+  servers: [{ url: process.env.SWAGGER_URL ?? "http://localhost:3000" }],
   tags: [
     { name: "Core" },
     { name: "Users" },

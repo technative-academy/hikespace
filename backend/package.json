@@ -26,6 +26,7 @@
     "dev": "tsx --watch --env-file .env src/app.ts",
     "start": "node dist/src/app.js",
     "build": "tsc",
+    "deploy": "npm run build && npm run migrate",
     "generate": "tsx node_modules/drizzle-kit/bin.cjs generate",
     "migrate": "tsx node_modules/drizzle-kit/bin.cjs migrate",
     "type-check": "tsc --noEmit",
