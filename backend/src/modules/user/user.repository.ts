@@ -19,4 +19,17 @@ export class UserRepository {
 
     return user ?? null;
   }
+
+  async updateUsername(id: number, username: string): Promise<User | null> {
+    const [user] = await db
+      .update(userTable)
+      .set({ username: username })
+      .where(eq(userTable.id, id))
+      .returning();
+    return user;
+  }
+
+  async delete(id: number): Promise<void> {
+    await db.delete(userTable).where(eq(userTable.id, id));
+  }
 }

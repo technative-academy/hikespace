@@ -19,4 +19,12 @@ export class UserService {
   async get(id: number): Promise<User | null> {
     return this.users.get(id);
   }
+
+  async updateUsername(id: number, username: string): Promise<User | null> {
+    return this.users.updateUsername(id, username);
+  }
+
+  async delete(id: number): Promise<void> {
+    return this.users.delete(id);
+  }
 }
