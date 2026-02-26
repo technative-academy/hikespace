@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { UserService } from "./user.service.js";
 import { CreateUserSchema, PublicUserSchema } from "./user.zod.js";
-import { IdParamSchema } from "#utils/validators.js";
+import { IdParamSchema, IdStringParamSchema } from "#utils/validators.js";
 
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -48,5 +48,60 @@ export class UserController {
     }
 
     return res.status(200).json(PublicUserSchema.parse(user));
+  };
+
+  // POST /users/:id/:username
+  updateUsername = async (req: Request, res: Response) => {
+    const parsedParams = IdStringParamSchema.safeParse(req.params);
+
+    if (!parsedParams.success) {
+      return res.status(400).json({
+        message: "Invalid id parameter",
+        errors: parsedParams.error.flatten()
+      });
+    }
+
+    try {
+      const user = await this.userService.updateUsername(
+        parsedParams.data.id,
+        parsedParams.data.username
+      );
+
+      return res.status(201).json(PublicUserSchema.parse(user));
+    } catch (error) {
+      return res.status(500).json({
+        message: "Failed to change username"
+      });
+    }
+  };
+
+  // DELETE /delete/:id
+  delete = async (req: Request, res: Response) => {
+    const parsedParams = IdParamSchema.safeParse(req.params);
+
+    if (!parsedParams.success) {
+      return res.status(400).json({
+        message: "Invalid id parameter",
+        errors: parsedParams.error.flatten()
+      });
+    }
+
+    const user = await this.userService.get(parsedParams.data.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    try {
+      await this.userService.delete(parsedParams.data.id);
+
+      return res.status(200).json({ message: "OK" });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Failed to delete user"
+      });
+    }
   };
 }
