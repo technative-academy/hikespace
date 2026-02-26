@@ -1,12 +1,18 @@
 import type { LatLngExpression } from "leaflet";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { MapContainer, Marker, Polyline, TileLayer } from "react-leaflet";
 import styles from "./PostContent.module.css";
 import "leaflet/dist/leaflet.css";
 import { type Point, usePost } from "@/features/post";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "../ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "../ui/carousel";
 
 export default function PostContent() {
   const { id } = useParams<{ id: string }>();
@@ -24,22 +30,33 @@ export default function PostContent() {
   // const [lat1, lng1] = pointA;
   // const [lat2, lng2] = pointB;
 
-  const toQueryString = (list: Point[]) => list.map(([lat, long]) => `${lat},${long}`).join(";");
+  const toQueryString = (list: Point[]) =>
+    list.map(([lat, long]) => `${lat},${long}`).join(";");
 
   // State to hold the actual route coordinates currently hardcorded coords for testing, will be updated with API response from actual post data
   const [route, setRoute] = useState<LatLngExpression[]>([]);
+
+  // Create a stable query string that only changes when route points actually change
+  const queryString = useMemo(
+    () => (post.route?.length >= 2 ? toQueryString(post.route) : null),
+    [post.route], // Only to be recalculated when post.route changes
+  );
 
   useEffect(() => {
     const fetchRoute = async () => {
       try {
         // Openstreetmap API request: pointA -> pointB, get GeoJSON route for walking mode and pass to leaflet
         const response = await fetch(
-          `https://routing.openstreetmap.de/routed-foot/route/v1/walking/${
-            toQueryString(post.route)
-          }?overview=full&geometries=geojson`,
+          `https://routing.openstreetmap.de/routed-foot/route/v1/walking/${toQueryString(
+            post.route,
+          )}?overview=full&geometries=geojson`,
         );
 
+        // console.log(post.route);
+
         const data = await response.json();
+
+        // console.log("API Response:", data);
 
         // Extract coordinates and convert them [lng, lat] -> [lat, lng] for Leaflet to map
         const coords = data.routes[0].geometry.coordinates as [
@@ -58,18 +75,24 @@ export default function PostContent() {
     };
 
     fetchRoute();
-  }, [post]);
+  }, [queryString]);
 
   return (
     <div className={styles.wrapper}>
       <p>PostContent</p>
       <div className={styles.map}>
-        <MapContainer center={post.route.at(0)!} zoom={15} style={{ height: "400px" }}>
+        <MapContainer
+          center={post.route.at(0)!}
+          zoom={15}
+          style={{ height: "400px" }}
+        >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {post.route.map((point) => <Marker key={point.join(";")} position={point} />)}
+          {post.route.map((point) => (
+            <Marker key={point.join(";")} position={point} />
+          ))}
           {/* Only render polyline once route is fetched */}
           {route.length > 0 && <Polyline positions={post.route} color="blue" />}
         </MapContainer>
@@ -77,9 +100,7 @@ export default function PostContent() {
       <h1>User {post.owner_id}</h1>
       <h2>{post.location_name}</h2>
       <h3>{post.caption}</h3>
-      <p>
-        {post.description}
-      </p>
+      <p>{post.description}</p>
       {/* Possibly numOfLikes filled and unfilled hearts if user liked the post or not, conditional rendering to be implemented */}
       <p>(❤️ / ♡) 78920</p>
 
@@ -91,7 +112,9 @@ export default function PostContent() {
                 <div className="p-1">
                   <Card>
                     <CardContent className="flex aspect-landscape items-center justify-center p-6">
-                      <span className="text-4xl font-semibold">{index + 1}</span>
+                      <span className="text-4xl font-semibold">
+                        {index + 1}
+                      </span>
                     </CardContent>
                   </Card>
                 </div>
