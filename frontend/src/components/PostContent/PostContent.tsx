@@ -8,15 +8,19 @@ export default function PostContent() {
   const pointA: LatLngExpression = [50.82882, -0.140741];
   const pointB: LatLngExpression = [50.832346, -0.139791];
 
+  // Extract coordinates
+  const [lat1, lng1] = pointA;
+  const [lat2, lng2] = pointB;
+
   // State to hold the actual route coordinates currently hardcorded coords for testing, will be updated with API response from actual post data
   const [route, setRoute] = useState<LatLngExpression[]>([]);
 
   useEffect(() => {
     const fetchRoute = async () => {
       try {
-        // OSRM API request: pointA -> pointB, get GeoJSON route for walking mode and pass to leaflet
+        // Openstreetmap API request: pointA -> pointB, get GeoJSON route for walking mode and pass to leaflet
         const response = await fetch(
-          `https://router.project-osrm.org/route/v1/walking/${(pointA as [number, number])[1]},${(pointA as [number, number])[0]};${(pointB as [number, number])[1]},${(pointB as [number, number])[0]}?overview=full&geometries=geojson`,
+          `https://routing.openstreetmap.de/routed-foot/route/v1/walking/${lng1},${lat1};${lng2},${lat2}?overview=full&geometries=geojson`,
         );
 
         const data = await response.json();
