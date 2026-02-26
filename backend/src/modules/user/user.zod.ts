@@ -16,7 +16,9 @@ export const CreateUserSchema = createInsertSchema(userTable)
 
 export const UpdateUserSchema = UserSchema.omit({
   id: true,
-  password_hash: true
+  password_hash: true,
+  image_url: true,
+  email: true
 })
   .partial()
   .strict();
