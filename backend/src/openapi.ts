@@ -1,7 +1,11 @@
 ﻿import { createDocument } from "zod-openapi";
 import { z } from "zod";
 
-import { CreateUserSchema, PublicUserSchema } from "#modules/user/user.zod.js";
+import {
+  CreateUserSchema,
+  PublicUserSchema,
+  UpdateUserSchema
+} from "#modules/user/user.zod.js";
 
 const StatusOkSchema = z
   .object({ status: z.string() })
@@ -84,6 +88,7 @@ const IdPathParamSchema = z.coerce
 
 const CreateUserOpenApiSchema = CreateUserSchema.meta({ id: "CreateUser" });
 const PublicUserOpenApiSchema = PublicUserSchema.meta({ id: "PublicUser" });
+const UpdateUserOpenApiSchema = UpdateUserSchema.meta({ id: "UpdateUser" });
 
 const AnyJsonSchema = z
   .record(z.string(), z.any())
@@ -153,6 +158,40 @@ const userPaths = {
         "200": jsonResponse(PublicUserOpenApiSchema),
         "400": { description: "Bad request" },
         "404": { description: "Not found" }
+      }
+    },
+    put: {
+      summary: "Update user",
+      tags: ["Users"],
+      requestParams: {
+        path: IdPathParams
+      },
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: UpdateUserOpenApiSchema
+          }
+        }
+      },
+      responses: {
+        "200": jsonResponse(PublicUserOpenApiSchema),
+        "400": { description: "Bad request" },
+        "404": { description: "Not found" },
+        "500": { description: "Server error" }
+      }
+    },
+    delete: {
+      summary: "Delete user",
+      tags: ["Users"],
+      requestParams: {
+        path: IdPathParams
+      },
+      responses: {
+        "200": jsonResponse(StatusOkSchema),
+        "400": { description: "Bad request" },
+        "404": { description: "Not found" },
+        "500": { description: "Server error" }
       }
     }
   }

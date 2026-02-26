@@ -1,7 +1,11 @@
 import type { Request, Response } from "express";
 import type { UserService } from "./user.service.js";
-import { CreateUserSchema, PublicUserSchema } from "./user.zod.js";
-import { IdParamSchema, IdStringParamSchema } from "#utils/validators.js";
+import {
+  CreateUserSchema,
+  PublicUserSchema,
+  UpdateUserSchema
+} from "./user.zod.js";
+import { IdParamSchema } from "#utils/validators.js";
 
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -50,9 +54,9 @@ export class UserController {
     return res.status(200).json(PublicUserSchema.parse(user));
   };
 
-  // POST /users/:id/:username
-  updateUsername = async (req: Request, res: Response) => {
-    const parsedParams = IdStringParamSchema.safeParse(req.params);
+  // PUT /users/:id
+  update = async (req: Request, res: Response) => {
+    const parsedParams = IdParamSchema.safeParse(req.params);
 
     if (!parsedParams.success) {
       return res.status(400).json({
@@ -61,21 +65,42 @@ export class UserController {
       });
     }
 
+    const parsedBody = UpdateUserSchema.safeParse(req.body);
+
+    if (!parsedBody.success) {
+      return res.status(400).json({
+        message: "Invalid request body",
+        errors: parsedBody.error.flatten()
+      });
+    }
+
+    if (Object.keys(parsedBody.data).length === 0) {
+      return res.status(400).json({
+        message: "No updatable fields provided"
+      });
+    }
+
     try {
-      const user = await this.userService.updateUsername(
+      const user = await this.userService.update(
         parsedParams.data.id,
-        parsedParams.data.username
+        parsedBody.data
       );
 
-      return res.status(201).json(PublicUserSchema.parse(user));
+      if (!user) {
+        return res.status(404).json({
+          message: "User not found"
+        });
+      }
+
+      return res.status(200).json(PublicUserSchema.parse(user));
     } catch (error) {
       return res.status(500).json({
-        message: "Failed to change username"
+        message: "Failed to update user"
       });
     }
   };
 
-  // DELETE /delete/:id
+  // DELETE /users/:id
   delete = async (req: Request, res: Response) => {
     const parsedParams = IdParamSchema.safeParse(req.params);
 
@@ -97,7 +122,7 @@ export class UserController {
     try {
       await this.userService.delete(parsedParams.data.id);
 
-      return res.status(200).json({ message: "OK" });
+      return res.status(200).json({ status: "OK" });
     } catch (error) {
       return res.status(500).json({
         message: "Failed to delete user"

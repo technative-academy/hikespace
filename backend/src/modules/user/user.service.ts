@@ -1,5 +1,5 @@
 import type { UserRepository } from "./user.repository.js";
-import type { User, CreateUserDto } from "./user.zod.js";
+import type { User, CreateUserDto, UpdateUserDto } from "./user.zod.js";
 import { hashPassword } from "../../utils/password.js";
 
 export class UserService {
@@ -20,8 +20,8 @@ export class UserService {
     return this.users.get(id);
   }
 
-  async updateUsername(id: number, username: string): Promise<User | null> {
-    return this.users.updateUsername(id, username);
+  async update(id: number, data: UpdateUserDto): Promise<User | null> {
+    return this.users.update(id, data);
   }
 
   async delete(id: number): Promise<void> {
