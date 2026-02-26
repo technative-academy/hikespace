@@ -38,17 +38,17 @@ const PostSchema = z
     example: {
       id: 1,
       owner_id: 1,
-      description: "walking in Brighton!",
+      description: "Walking in Brighton!",
       route: {
         type: "LineString",
         coordinates: [
-          [-0.141176, 50.828873],
-          [-0.1422, 50.8293],
-          [-0.1431, 50.8302]
+          [50.828873, -0.141176],
+          [50.8293, -0.1422],
+          [50.8302, -0.1431]
         ]
       },
       location_name: "Brighton",
-      caption: "hi, this is a post about walking in Brighton!"
+      caption: "Hi, this is a post about walking in Brighton!"
     }
   });
 
@@ -62,17 +62,17 @@ const CreatePostSchema = z
   .meta({
     id: "CreatePost",
     example: {
-      description: "walking in Brighton!",
+      description: "Walking in Brighton!",
       route: {
         type: "LineString",
         coordinates: [
-          [-0.141176, 50.828873],
-          [-0.1422, 50.8293],
-          [-0.1431, 50.8302]
+          [50.828873, -0.141176],
+          [50.8293, -0.1422],
+          [50.8302, -0.1431]
         ]
       },
       location_name: "Brighton",
-      caption: "hi, this is a post about walking in Brighton!"
+      caption: "Hi, this is a post about walking in Brighton!"
     }
   });
 
@@ -247,7 +247,7 @@ const testPaths = {
 export const openapiDocument = createDocument({
   openapi: "3.0.3",
   info: {
-    title: "Test Express API",
+    title: "HikeSpace API",
     version: "1.0.0"
   },
   servers: [{ url: process.env.SWAGGER_URL ?? "http://localhost:3000" }],
