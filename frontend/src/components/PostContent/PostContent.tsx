@@ -16,59 +16,45 @@ import {
 
 export default function PostContent() {
   const { id } = useParams<{ id: string }>();
-
   let { post, isLoading, error } = usePost(Number(id));
 
-  // todo make this cleaner
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
-  // const pointA: LatLngExpression = [50.82882, -0.140741];
-  // const pointB: LatLngExpression = [50.832346, -0.139791];
-
-  // Extract coordinates
-  // const [lat1, lng1] = pointA;
-  // const [lat2, lng2] = pointB;
-
+  // Fix: OSRM needs longitude,latitude format
   const toQueryString = (list: Point[]) =>
-    list.map(([lat, long]) => `${lat},${long}`).join(";");
+    list.map(([lat, lng]) => `${lng},${lat}`).join(";");
 
-  // State to hold the actual route coordinates currently hardcorded coords for testing, will be updated with API response from actual post data
   const [route, setRoute] = useState<LatLngExpression[]>([]);
 
-  // Create a stable query string that only changes when route points actually change
   const queryString = useMemo(
     () => (post.route?.length >= 2 ? toQueryString(post.route) : null),
-    [post.route], // Only to be recalculated when post.route changes
+    [post.route],
   );
 
   useEffect(() => {
     const fetchRoute = async () => {
+      if (!queryString) return;
+
       try {
-        // Openstreetmap API request: pointA -> pointB, get GeoJSON route for walking mode and pass to leaflet
         const response = await fetch(
-          `https://routing.openstreetmap.de/routed-foot/route/v1/walking/${toQueryString(
-            post.route,
-          )}?overview=full&geometries=geojson`,
+          `https://routing.openstreetmap.de/routed-foot/route/v1/walking/${queryString}?overview=full&geometries=geojson`,
         );
 
-        // console.log(post.route);
-
         const data = await response.json();
+        console.log(data);
 
-        // console.log("API Response:", data);
-
-        // Extract coordinates and convert them [lng, lat] -> [lat, lng] for Leaflet to map
-        const coords = data.routes[0].geometry.coordinates as [
-          number,
-          number,
-        ][];
-        const latLng: LatLngExpression[] = coords.map(([lng, lat]) => [
-          lat,
-          lng,
-        ]);
-
-        setRoute(latLng);
+        if (data.routes?.[0]?.geometry?.coordinates) {
+          const coords = data.routes[0].geometry.coordinates as [
+            number,
+            number,
+          ][];
+          const latLng: LatLngExpression[] = coords.map(([lng, lat]) => [
+            lat,
+            lng,
+          ]);
+          setRoute(latLng);
+        }
       } catch (err) {
         console.error("Error fetching route:", err);
       }
@@ -90,18 +76,21 @@ export default function PostContent() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          {/* Waypoint markers */}
           {post.route.map((point) => (
             <Marker key={point.join(";")} position={point} />
           ))}
-          {/* Only render polyline once route is fetched */}
-          {route.length > 0 && <Polyline positions={post.route} color="blue" />}
+
+          {/* FIXED: Use route state, not post.route */}
+          {route.length > 0 && (
+            <Polyline positions={route} color="blue" weight={4} />
+          )}
         </MapContainer>
       </div>
       <h1>User {post.owner_id}</h1>
       <h2>{post.location_name}</h2>
       <h3>{post.caption}</h3>
       <p>{post.description}</p>
-      {/* Possibly numOfLikes filled and unfilled hearts if user liked the post or not, conditional rendering to be implemented */}
       <p>(❤️ / ♡) 78920</p>
 
       <center>
