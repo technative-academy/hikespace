@@ -3,6 +3,7 @@ import PostContent from "./components/PostContent/PostContent";
 import UserContent from "./components/UserContent/UserContent";
 import Root from "./components/Root/Root";
 import Auth from "./components/Auth/Auth.tsx";
+import CreatePost from "./components/CreatePost/CreatePost.tsx";
 
 const routes = [
   {
@@ -24,6 +25,10 @@ const routes = [
       {
         path: "user/:id",
         element: <UserContent />,
+      },
+      {
+        path: "createpost",
+        element: <CreatePost />,
       },
     ],
   },
