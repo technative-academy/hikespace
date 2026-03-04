@@ -4,14 +4,32 @@ import { Grid } from '../Grid/Grid'
 import type { Post } from '@/features/post';
 import { Loading } from '../Loading/Loading';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { useUser } from '@/features/user';
+import { Empty, EmptyContent, EmptyTitle } from '../ui/empty';
+import { useParams } from 'react-router-dom';
+import { Button } from '../ui/button';
 
 export default function UserContent() {
+  const { id } = useParams<{ id: string }>();
 
-  const { data, error, isLoading } = useSWR<Post[]>("/api/posts");
+  const { user, error: userError, isLoading: userIsLoading } = useUser(Number(id));
+  const { data: posts, error, isLoading } = useSWR<Post[]>("/api/posts");
 
-  if (error) return <div>Error: {error.message}</div>;
+  if (userIsLoading) return <Loading thing="user" />;
+  if (!user) return (
+    <Empty>
+      <EmptyTitle>User not found</EmptyTitle>
+      <EmptyContent>
+        Could not find a user with the specified ID.
+        <Button asChild>
+          <a href="/">Go Home</a>
+        </Button>
+      </EmptyContent>
+    </Empty>
+  )
 
-
+  if (userError) throw userError;
+  if (error) throw error;
 
   return <div>
     <div className='relative aspect-32/9 mb-10'>
@@ -30,7 +48,7 @@ export default function UserContent() {
       </div>
     </div>
     <div className='p-4'>
-      <p className='text-2xl font-bold mb-4'>User name</p>
+      <p className='text-2xl font-bold mb-4'>{user.username}</p>
 
         <Tabs defaultValue="feed" style={{ alignSelf: "stretch" }}>
           <TabsList variant="line">
@@ -39,7 +57,7 @@ export default function UserContent() {
           </TabsList>
           <TabsContent value="feed">
                   { (!isLoading) ? <Grid minWidth="12rem">
-        {data!.map((post) => <FeedPost key={post.id} post={post} />)}
+        {posts!.map((post) => <FeedPost key={post.id} post={post} />)}
       </Grid> : <Loading thing="posts" /> }
 
           </TabsContent>
