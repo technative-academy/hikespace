@@ -1,6 +1,7 @@
 import Home from "./components/Home/Home";
 import PostContent from "./components/PostContent/PostContent";
 import Root from "./components/Root/Root";
+import Auth from "./components/Auth/Auth.tsx";
 
 const routes = [
   {
@@ -14,6 +15,10 @@ const routes = [
       {
         path: "post/:id",
         element: <PostContent />,
+      },
+      {
+        path: "auth",
+        element: <Auth />,
       },
     ],
   },
