@@ -5,7 +5,6 @@ import styles from "./PostContent.module.css";
 import "leaflet/dist/leaflet.css";
 import { type Point, usePost } from "@/features/post";
 import { useParams } from "react-router-dom";
-import { Spinner } from "@/components/ui/spinner"
 
 import PostNotFound from "./PostNotFound";
 import { Card, CardContent } from "../ui/card";
@@ -16,6 +15,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "../ui/carousel";
+import { Loading } from "../Loading/Loading";
 
 const toQueryString = (list: Point[]) =>
   list.map(([lat, lng]) => `${lat},${lng}`).join(";");
@@ -62,14 +62,7 @@ export default function PostContent() {
     fetchRoute();
   }, [queryString]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Spinner /> &nbsp; Loading post...
-      </div>
-    );
-  }
-
+  if (isLoading) return <Loading thing="post" />;
   if (error || !post || !post.route || !post.route.coordinates || post.route.coordinates.length === 0) {
     return <PostNotFound />;
   }
