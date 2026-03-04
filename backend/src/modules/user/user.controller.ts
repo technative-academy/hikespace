@@ -54,6 +54,12 @@ export class UserController {
     return res.status(200).json(PublicUserSchema.parse(user));
   };
 
+  getAll = async (_req: Request, res: Response) => {
+    const allUsers = await this.userService.getAll();
+
+    return res.status(200).json(allUsers);
+  };
+
   // PUT /users/:id
   update = async (req: Request, res: Response) => {
     const parsedParams = IdParamSchema.safeParse(req.params);

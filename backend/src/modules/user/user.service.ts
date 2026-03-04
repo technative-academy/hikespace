@@ -20,6 +20,10 @@ export class UserService {
     return this.users.get(id);
   }
 
+  async getAll(): Promise<User[]> {
+    return this.users.getAll();
+  }
+
   async update(id: number, data: UpdateUserDto): Promise<User | null> {
     return this.users.update(id, data);
   }
