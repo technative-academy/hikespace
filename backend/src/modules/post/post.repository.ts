@@ -61,4 +61,54 @@ export class PostRepository {
 
     return post as Post;
   }
+
+  async getAll(): Promise<Post[]> {
+    const allPosts: Post[] = await db
+      .select({
+        id: postTable.id,
+        owner_id: postTable.owner_id,
+        description: postTable.description,
+        route: sql<LineStringGeoJSON>`ST_AsGeoJSON(${postTable.route})::json`,
+        location_name: postTable.location_name,
+        caption: postTable.caption
+      })
+      .from(postTable);
+
+    return allPosts;
+  }
+
+  async delete(id: number): Promise<void> {
+    await db.delete(postTable).where(eq(postTable.id, id));
+  }
+
+  async update(
+    id: number,
+    data: Partial<Omit<NewPost, "id" | "owner_id">>
+  ): Promise<Post | null> {
+    const set: Record<string, any> = {};
+
+    if (data.description !== undefined) set.description = data.description;
+    if (data.caption !== undefined) set.caption = data.caption;
+    if (data.location_name !== undefined)
+      set.location_name = data.location_name;
+
+    if (data.route !== undefined) {
+      set.route = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(data.route)}), 4326)`;
+    }
+
+    const [updated] = await db
+      .update(postTable)
+      .set(set)
+      .where(eq(postTable.id, id))
+      .returning({
+        id: postTable.id,
+        owner_id: postTable.owner_id,
+        description: postTable.description,
+        route: sql`ST_AsGeoJSON(${postTable.route})::json`,
+        location_name: postTable.location_name,
+        caption: postTable.caption
+      });
+
+    return updated as Post;
+  }
 }

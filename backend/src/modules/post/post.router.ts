@@ -11,5 +11,8 @@ const postController = new PostController(postService);
 
 router.post("/", postController.create);
 router.get("/:id", postController.get);
+router.get("/", postController.getAll);
+router.put("/:id", postController.update);
+router.delete("/:id", postController.delete);
 
 export default router;

@@ -18,7 +18,9 @@ export const CreatePostSchema = createInsertSchema(postTable, {
   id: true,
   owner_id: true
 });
+export const UpdatePostSchema = CreatePostSchema.partial().strict();
 
 export type Post = z.infer<typeof PostSchema>;
 export type CreatePostBody = z.infer<typeof CreatePostSchema>;
 export type CreatePostDto = CreatePostBody & { owner_id: number };
+export type UpdatePostDto = z.infer<typeof UpdatePostSchema>;

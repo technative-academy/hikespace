@@ -19,4 +19,20 @@ export class UserRepository {
 
     return user ?? null;
   }
+
+  async update(
+    id: number,
+    data: Partial<Omit<User, "id" | "password_hash">>
+  ): Promise<User | null> {
+    const [user] = await db
+      .update(userTable)
+      .set(data)
+      .where(eq(userTable.id, id))
+      .returning();
+    return user ?? null;
+  }
+
+  async delete(id: number): Promise<void> {
+    await db.delete(userTable).where(eq(userTable.id, id));
+  }
 }

@@ -14,5 +14,15 @@ export const CreateUserSchema = createInsertSchema(userTable)
     password: z.string().min(8).max(20)
   });
 
+export const UpdateUserSchema = UserSchema.omit({
+  id: true,
+  password_hash: true,
+  image_url: true,
+  email: true
+})
+  .partial()
+  .strict();
+
 export type User = z.infer<typeof UserSchema>;
 export type CreateUserDto = z.infer<typeof CreateUserSchema>;
+export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;

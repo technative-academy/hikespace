@@ -8,14 +8,14 @@ interface FeedPostProps {
 
 function FeedPost({ post }: FeedPostProps) {
   return (
-    <Card>
-      <Link to={`/post/${post.post_id}`}>
-        <CardHeader>
-          <img
+    <Card className="pt-0">
+      <Link to={`/post/${post.id}`}>
+      <img
             src="https://avatar.vercel.sh/shadcn1"
             alt="Event cover"
-            className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
+            className="rounded-t-xl relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
           />
+        <CardHeader className="pt-6">
           <CardTitle>{post.location_name}</CardTitle>
           <CardDescription>{post.description}</CardDescription>
         </CardHeader>
