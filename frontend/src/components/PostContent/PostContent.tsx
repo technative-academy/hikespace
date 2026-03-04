@@ -6,7 +6,6 @@ import "leaflet/dist/leaflet.css";
 import { type Point, usePost } from "@/features/post";
 import { useParams } from "react-router-dom";
 
-import PostNotFound from "./PostNotFound";
 import { Card, CardContent } from "../ui/card";
 import {
   Carousel,
@@ -16,6 +15,8 @@ import {
   CarouselPrevious,
 } from "../ui/carousel";
 import { Loading } from "../Loading/Loading";
+import { Empty, EmptyContent, EmptyTitle } from "../ui/empty";
+import { Button } from "../ui/button";
 
 const toQueryString = (list: Point[]) =>
   list.map(([lat, lng]) => `${lat},${lng}`).join(";");
@@ -63,9 +64,20 @@ export default function PostContent() {
   }, [queryString]);
 
   if (isLoading) return <Loading thing="post" />;
-  if (error || !post || !post.route || !post.route.coordinates || post.route.coordinates.length === 0) {
-    return <PostNotFound />;
+  if (!post) {
+    return (
+      <Empty>
+        <EmptyTitle>404: Post not found</EmptyTitle>
+        <EmptyContent>
+          The post you're looking for doesn't exist or has been removed.
+          <Button asChild>
+            <a href="/">Go Home</a>
+          </Button>
+        </EmptyContent>
+      </Empty>
+    )
   }
+  if (error) throw error;
 
   return (
     <div className={styles.wrapper}>
