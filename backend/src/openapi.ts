@@ -80,6 +80,14 @@ const CreatePostSchema = z
     }
   });
 
+const UpdatePostSchema = CreatePostSchema.partial().meta({
+  id: "UpdatePost",
+  example: {
+    description: "Updated walk around Brighton seafront",
+    caption: "Updated caption"
+  }
+});
+
 const IdPathParamSchema = z.coerce
   .number()
   .int()
@@ -199,6 +207,14 @@ const userPaths = {
 
 const postPaths = {
   "/posts": {
+    get: {
+      summary: "Get all posts",
+      tags: ["Posts"],
+      responses: {
+        "200": jsonResponse(z.array(PostSchema)),
+        "500": { description: "Server error" }
+      }
+    },
     post: {
       summary: "Create post",
       tags: ["Posts"],
@@ -231,6 +247,42 @@ const postPaths = {
         "400": { description: "Bad request" },
         "404": { description: "Not found" }
       }
+    },
+    put: {
+      summary: "Update post",
+      tags: ["Posts"],
+      requestParams: {
+        path: IdPathParams
+      },
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: UpdatePostSchema
+          }
+        }
+      },
+      responses: {
+        "200": jsonResponse(PostSchema),
+        "400": { description: "Bad request" },
+        "401": { description: "Unauthorized" },
+        "404": { description: "Not found" },
+        "500": { description: "Server error" }
+      }
+    },
+    delete: {
+      summary: "Delete post",
+      tags: ["Posts"],
+      requestParams: {
+        path: IdPathParams
+      },
+      responses: {
+        "200": jsonResponse(StatusOkSchema),
+        "400": { description: "Bad request" },
+        "401": { description: "Unauthorized" },
+        "404": { description: "Not found" },
+        "500": { description: "Server error" }
+      }
     }
   }
 };
@@ -260,7 +312,8 @@ export const openapiDocument = createDocument({
       StatusOk: StatusOkSchema,
       LineStringGeoJSON: LineStringGeoJSONSchema,
       Post: PostSchema,
-      CreatePost: CreatePostSchema
+      CreatePost: CreatePostSchema,
+      UpdatePost: UpdatePostSchema
     }
   }
 });
