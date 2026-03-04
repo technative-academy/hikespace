@@ -85,36 +85,30 @@ export class PostRepository {
     id: number,
     data: Partial<Omit<NewPost, "id" | "owner_id">>
   ): Promise<Post | null> {
-    const geojson = data.route ? JSON.stringify(data.route) : null;
+    const set: Record<string, any> = {};
 
-    const result = await db.execute(sql<Post>`
-    UPDATE "post"
-    SET
-      "description" = COALESCE(${data.description}, "description"),
-      "path" = COALESCE(
-        CASE
-          WHEN ${geojson}::text IS NULL THEN NULL
-          ELSE ST_SetSRID(ST_GeomFromGeoJSON(${geojson}), 4326)
-        END,
-        "path"
-      ),
-      "location_name" = COALESCE(${data.location_name}, "location_name"),
-      "caption" = COALESCE(${data.caption}, "caption")
-    WHERE "id" = ${id}
-    RETURNING
-      "id",
-      "owner_id",
-      "description",
-      ST_AsGeoJSON("path")::json AS "route",
-      "location_name",
-      "caption"
-  `);
+    if (data.description !== undefined) set.description = data.description;
+    if (data.caption !== undefined) set.caption = data.caption;
+    if (data.location_name !== undefined)
+      set.location_name = data.location_name;
 
-    const row = result.rows[0];
-    if (!row) {
-      throw new Error("Failed to create post");
+    if (data.route !== undefined) {
+      set.route = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(data.route)}), 4326)`;
     }
 
-    return row as Post;
+    const [updated] = await db
+      .update(postTable)
+      .set(set)
+      .where(eq(postTable.id, id))
+      .returning({
+        id: postTable.id,
+        owner_id: postTable.owner_id,
+        description: postTable.description,
+        route: sql`ST_AsGeoJSON(${postTable.route})::json`,
+        location_name: postTable.location_name,
+        caption: postTable.caption
+      });
+
+    return updated as Post;
   }
 }

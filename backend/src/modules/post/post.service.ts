@@ -1,5 +1,5 @@
 import type { PostRepository } from "./post.repository.js";
-import type { Post, CreatePostDto } from "./post.zod.js";
+import type { Post, CreatePostDto, UpdatePostDto } from "./post.zod.js";
 
 export class PostService {
   constructor(private readonly posts: PostRepository) {}
@@ -20,5 +20,13 @@ export class PostService {
 
   async getAll(): Promise<Post[]> {
     return this.posts.getAll();
+  }
+
+  async update(id: number, data: UpdatePostDto): Promise<Post | null> {
+    return this.posts.update(id, data);
+  }
+
+  async delete(id: number): Promise<void> {
+    return this.posts.delete(id);
   }
 }

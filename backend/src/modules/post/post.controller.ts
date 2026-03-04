@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import type { PostService } from "./post.service.js";
-import { CreatePostSchema, PostSchema } from "./post.zod.js";
+import { CreatePostSchema, PostSchema, UpdatePostSchema } from "./post.zod.js";
 import { IdParamSchema } from "#utils/validators.js";
 
 export class PostController {
@@ -63,6 +63,89 @@ export class PostController {
   getAll = async (_req: Request, res: Response) => {
     const posts = await this.postService.getAll();
 
-    return res.status(200).json(posts);
+    return res.status(200).json(PostSchema.array().parse(posts));
+  };
+
+  // PUT /posts/:id
+  update = async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Unauthorized"
+      });
+    }
+
+    const parsedParams = IdParamSchema.safeParse(req.params);
+
+    if (!parsedParams.success) {
+      return res.status(400).json({
+        message: "Invalid id parameter",
+        errors: parsedParams.error.flatten()
+      });
+    }
+
+    const parsedBody = UpdatePostSchema.safeParse(req.body);
+
+    if (!parsedBody.success) {
+      return res.status(400).json({
+        message: "Invalid request body",
+        errors: parsedBody.error.flatten()
+      });
+    }
+
+    try {
+      const post = await this.postService.update(
+        parsedParams.data.id,
+        parsedBody.data
+      );
+
+      if (!post) {
+        return res.status(404).json({
+          message: "Post not found"
+        });
+      }
+
+      return res.status(200).json(PostSchema.parse(post));
+    } catch (error) {
+      return res.status(500).json({
+        message: "Failed to update post",
+        error: error
+      });
+    }
+  };
+
+  // DELETE /posts/:id
+  delete = async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.status(401).json({
+        message: "Unauthorized"
+      });
+    }
+
+    const parsedParams = IdParamSchema.safeParse(req.params);
+
+    if (!parsedParams.success) {
+      return res.status(400).json({
+        message: "Invalid id parameter",
+        errors: parsedParams.error.flatten()
+      });
+    }
+
+    const post = await this.postService.get(parsedParams.data.id);
+
+    if (!post) {
+      return res.status(404).json({
+        message: "Post not found"
+      });
+    }
+
+    try {
+      await this.postService.delete(parsedParams.data.id);
+
+      return res.status(200).json({ status: "OK" });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Failed to delete post"
+      });
+    }
   };
 }
