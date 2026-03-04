@@ -2,14 +2,19 @@ import { Menu } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { HStack, VStack } from "../Stack/Stack";
 import { Button } from "../ui/button";
-import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "../ui/navigation-menu";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from "../ui/navigation-menu";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet";
 import styles from "./SiteHeader.module.css";
 
 export default function SiteHeader() {
   const navLinks = [
     { label: "Home", url: "/" },
-    { label: "Example", url: "/test" },
+    { label: "Example", url: "/auth" }, // testing purposes of auth needs to be removed after
   ];
 
   return (
@@ -20,11 +25,7 @@ export default function SiteHeader() {
           {navLinks.map((navLink) => (
             <NavigationMenuItem key={navLink.url}>
               <NavigationMenuLink asChild>
-                <NavLink
-                  to={navLink.url}
-                >
-                  {navLink.label}
-                </NavLink>
+                <NavLink to={navLink.url}>{navLink.label}</NavLink>
               </NavigationMenuLink>
             </NavigationMenuItem>
           ))}
@@ -43,12 +44,14 @@ export default function SiteHeader() {
           <SheetTitle>Navigation Menu</SheetTitle>
           <VStack>
             {navLinks.map((navLink) => (
-              <NavLink
-                key={navLink.url}
-                to={navLink.url}
-              >
+              <NavLink key={navLink.url} to={navLink.url}>
                 {({ isActive }) => (
-                  <Button asChild className="w-full rounded-none" variant="ghost" data-active={isActive}>
+                  <Button
+                    asChild
+                    className="w-full rounded-none"
+                    variant="ghost"
+                    data-active={isActive}
+                  >
                     <span>{navLink.label}</span>
                   </Button>
                 )}
