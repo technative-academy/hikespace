@@ -20,6 +20,8 @@ const routes = [
       {
         path: "auth",
         element: <Auth />,
+      },
+      {
         path: "user/:id",
         element: <UserContent />,
       },
