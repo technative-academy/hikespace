@@ -58,4 +58,15 @@ export class PostController {
 
     return res.status(200).json(PostSchema.parse(post));
   };
+
+  // GET /posts/
+  getAll = async (_req: Request, res: Response) => {
+    const posts = await this.postService.getAll();
+
+    if (!posts) {
+      return res.status(404).json({ message: "Posts not found" });
+    }
+
+    return res.status(200).json(posts);
+  };
 }

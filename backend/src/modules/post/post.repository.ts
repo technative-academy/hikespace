@@ -61,4 +61,14 @@ export class PostRepository {
 
     return post as Post;
   }
+
+  async getAll(): Promise<Post[] | null> {
+    const allPosts = await db.select().from(postTable);
+
+    if (!allPosts) {
+      return null;
+    }
+
+    return allPosts as Post[];
+  }
 }
