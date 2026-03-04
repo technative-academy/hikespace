@@ -6,11 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.t
 import { type Post } from "@/features/post";
 import useSWR from "swr";
 import styles from "./Home.module.css";
+import { Loading } from "../Loading/Loading";
 
 function Home() {
   const { data, error, isLoading } = useSWR<Post[]>("/api/posts");
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Loading thing="home page" />;
   if (error) return <div>Error: {error.message}</div>;
 
   return (

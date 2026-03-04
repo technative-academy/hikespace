@@ -1,5 +1,6 @@
 import Home from "./components/Home/Home";
 import PostContent from "./components/PostContent/PostContent";
+import UserContent from "./components/UserContent/UserContent";
 import Root from "./components/Root/Root";
 
 const routes = [
@@ -14,6 +15,10 @@ const routes = [
       {
         path: "post/:id",
         element: <PostContent />,
+      },
+      {
+        path: "user/:id",
+        element: <UserContent />,
       },
     ],
   },
