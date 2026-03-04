@@ -17,4 +17,8 @@ export class PostService {
   async get(id: number): Promise<Post | null> {
     return this.posts.get(id);
   }
+
+  async getAll(): Promise<Post[] | null> {
+    return this.posts.getAll();
+  }
 }
