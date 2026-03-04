@@ -17,7 +17,8 @@ export class ImageService {
   ): Promise<Image[]> {
     let result: Image[] = [];
     images.forEach(async (image, idx) => {
-      let imageKey = new Date().getTime().toString() + image.filename;
+      console.log(image);
+      let imageKey = new Date().getTime().toString() + image.originalname;
 
       await s3.send(
         new PutObjectCommand({
