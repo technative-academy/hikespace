@@ -7,35 +7,46 @@ import {
   PutObjectCommand
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { PostService } from "#modules/post/post.service.js";
+import { PostRepository } from "#modules/post/post.repository.js";
 
 export class ImageService {
   constructor(private readonly images: ImageRepository) {}
 
+  postService = new PostService(new PostRepository());
+
   async create(
     dto: CreateImageMetadataDto,
     images: Express.Multer.File[]
-  ): Promise<Image[]> {
-    let result: Image[] = [];
-    images.forEach(async (image, idx) => {
-      let imageKey = new Date().getTime().toString() + image.filename;
+  ): Promise<Image[] | null> {
+    const postCheck = await this.postService.get(dto.post_id);
 
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-          Body: image.buffer,
-          ContentType: image.mimetype,
-          Key: imageKey
-        })
-      );
+    if (!postCheck) {
+      return null;
+    }
 
-      const toAdd = await this.images.create({
-        post_id: dto.post_id,
-        image_url: imageKey,
-        position: dto.metadata[idx].position
-      });
+    let result: Image[] = await Promise.all(
+      images.map(async (image, idx) => {
+        let imageKey = new Date().getTime().toString() + image.filename;
 
-      result.push(toAdd);
-    });
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
+            Body: image.buffer,
+            ContentType: image.mimetype,
+            Key: imageKey
+          })
+        );
+
+        const toAdd = await this.images.create({
+          post_id: dto.post_id,
+          image_url: imageKey,
+          position: dto.metadata[idx].position
+        });
+
+        return toAdd;
+      })
+    );
     return result;
   }
 
