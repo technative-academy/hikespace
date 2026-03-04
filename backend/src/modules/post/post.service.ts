@@ -18,7 +18,7 @@ export class PostService {
     return this.posts.get(id);
   }
 
-  async getAll(): Promise<Post[] | null> {
+  async getAll(): Promise<Post[]> {
     return this.posts.getAll();
   }
 }

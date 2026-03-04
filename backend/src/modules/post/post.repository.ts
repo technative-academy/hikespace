@@ -62,13 +62,18 @@ export class PostRepository {
     return post as Post;
   }
 
-  async getAll(): Promise<Post[] | null> {
-    const allPosts = await db.select().from(postTable);
+  async getAll(): Promise<Post[]> {
+    const allPosts: Post[] = await db
+      .select({
+        id: postTable.id,
+        owner_id: postTable.owner_id,
+        description: postTable.description,
+        route: sql<LineStringGeoJSON>`ST_AsGeoJSON(${postTable.route})::json`,
+        location_name: postTable.location_name,
+        caption: postTable.caption
+      })
+      .from(postTable);
 
-    if (!allPosts) {
-      return null;
-    }
-
-    return allPosts as Post[];
+    return allPosts;
   }
 }
