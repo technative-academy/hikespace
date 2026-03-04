@@ -29,6 +29,20 @@
       "when": 1772122130580,
       "tag": "0003_parched_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772622864634,
+      "tag": "0004_wandering_norrin_radd",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772622907160,
+      "tag": "0005_many_shiver_man",
+      "breakpoints": true
     }
   ]
 }

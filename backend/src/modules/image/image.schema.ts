@@ -1,7 +1,7 @@
 import { integer, serial, pgTable, varchar } from "drizzle-orm/pg-core";
 import { postTable } from "../post/post.schema.js";
 
-export const imageTable = pgTable("Image", {
+export const imageTable = pgTable("image", {
   id: serial().primaryKey(),
   post_id: integer()
     .notNull()
