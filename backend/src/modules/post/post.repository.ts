@@ -76,4 +76,45 @@ export class PostRepository {
 
     return allPosts;
   }
+
+  async delete(id: number): Promise<void> {
+    await db.delete(postTable).where(eq(postTable.id, id));
+  }
+
+  async update(
+    id: number,
+    data: Partial<Omit<NewPost, "id" | "owner_id">>
+  ): Promise<Post | null> {
+    const geojson = data.route ? JSON.stringify(data.route) : null;
+
+    const result = await db.execute(sql<Post>`
+    UPDATE "post"
+    SET
+      "description" = COALESCE(${data.description}, "description"),
+      "path" = COALESCE(
+        CASE
+          WHEN ${geojson}::text IS NULL THEN NULL
+          ELSE ST_SetSRID(ST_GeomFromGeoJSON(${geojson}), 4326)
+        END,
+        "path"
+      ),
+      "location_name" = COALESCE(${data.location_name}, "location_name"),
+      "caption" = COALESCE(${data.caption}, "caption")
+    WHERE "id" = ${id}
+    RETURNING
+      "id",
+      "owner_id",
+      "description",
+      ST_AsGeoJSON("path")::json AS "route",
+      "location_name",
+      "caption"
+  `);
+
+    const row = result.rows[0];
+    if (!row) {
+      throw new Error("Failed to create post");
+    }
+
+    return row as Post;
+  }
 }
