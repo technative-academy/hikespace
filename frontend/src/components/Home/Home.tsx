@@ -25,12 +25,12 @@ function Home() {
           </TabsList>
           <TabsContent value="feed">
             <Grid minWidth="12rem">
-              {data!.map((post) => <FeedPost key={post.post_id} post={post} />)}
+              {data!.map((post) => <FeedPost key={post.id} post={post} />)}
             </Grid>
           </TabsContent>
           <TabsContent value="following">
             <Grid minWidth="12rem">
-              {data!.map((post) => <FeedPost key={post.post_id} post={post} />)}
+              {data!.map((post) => <FeedPost key={post.id} post={post} />)}
             </Grid>
           </TabsContent>
         </Tabs>

@@ -5,6 +5,9 @@ import styles from "./PostContent.module.css";
 import "leaflet/dist/leaflet.css";
 import { type Point, usePost } from "@/features/post";
 import { useParams } from "react-router-dom";
+import { Spinner } from "@/components/ui/spinner"
+
+import PostNotFound from "./PostNotFound";
 import { Card, CardContent } from "../ui/card";
 import {
   Carousel,
@@ -14,22 +17,18 @@ import {
   CarouselPrevious,
 } from "../ui/carousel";
 
+const toQueryString = (list: Point[]) =>
+  list.map(([lat, lng]) => `${lat},${lng}`).join(";");
+
 export default function PostContent() {
   const { id } = useParams<{ id: string }>();
   let { post, isLoading, error } = usePost(Number(id));
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-
-  // Fix: OSRM needs longitude,latitude format
-  const toQueryString = (list: Point[]) =>
-    list.map(([lat, lng]) => `${lng},${lat}`).join(";");
-
   const [route, setRoute] = useState<LatLngExpression[]>([]);
 
   const queryString = useMemo(
-    () => (post.route?.length >= 2 ? toQueryString(post.route) : null),
-    [post.route],
+    () => (post != null ? post?.route.coordinates.length >= 2 ? toQueryString(post.route.coordinates) : null : null),
+    [post?.route],
   );
 
   useEffect(() => {
@@ -63,12 +62,24 @@ export default function PostContent() {
     fetchRoute();
   }, [queryString]);
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Spinner /> &nbsp; Loading post...
+      </div>
+    );
+  }
+
+  if (error || !post || !post.route || !post.route.coordinates || post.route.coordinates.length === 0) {
+    return <PostNotFound />;
+  }
+
   return (
     <div className={styles.wrapper}>
-      <p>PostContent</p>
+
       <div className={styles.map}>
         <MapContainer
-          center={post.route.at(0)!}
+          center={[post.route.coordinates.at(0)![1], post.route.coordinates.at(0)![0]]}
           zoom={15}
           style={{ height: "400px" }}
         >
@@ -77,8 +88,8 @@ export default function PostContent() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {/* Waypoint markers */}
-          {post.route.map((point) => (
-            <Marker key={point.join(";")} position={point} />
+          {post.route.coordinates.map((point) => (
+            <Marker key={point.join(";")} position={[point[1], point[0]]} />
           ))}
 
           {/* FIXED: Use route state, not post.route */}
@@ -87,14 +98,14 @@ export default function PostContent() {
           )}
         </MapContainer>
       </div>
-      <h1>User {post.owner_id}</h1>
-      <h2>{post.location_name}</h2>
-      <h3>{post.caption}</h3>
-      <p>{post.description}</p>
-      <p>(❤️ / ♡) 78920</p>
+      <div className="p-4">
+        <p className="text-lg font-bold">📍 {post.location_name}</p>
+        <p className="italic">{post.description}</p>
+        <p>❤️ 78920</p>
+      </div>
 
       <center>
-        <Carousel className="w-full max-w-[27rem] sm:max-w-xs p-2">
+        <Carousel className="w-full max-w-[27rem] md:px-8 px-0" opts={{ loop: true }}>
           <CarouselContent>
             {Array.from({ length: 5 }).map((_, index) => (
               <CarouselItem key={index}>
@@ -113,7 +124,9 @@ export default function PostContent() {
           <CarouselNext />
           <CarouselPrevious />
         </Carousel>
+        <p>{post.caption}</p>
       </center>
+
     </div>
   );
 }
