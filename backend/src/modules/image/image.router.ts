@@ -11,8 +11,6 @@ const imageRepo = new ImageRepository();
 const imageService = new ImageService(imageRepo);
 const imageController = new ImageController(imageService);
 
-// todo: figure out how to route images - possibly through post creation/updates?
-
 router.post("/", upload.array("images", 5), imageController.create);
 router.get("/:id", imageController.get);
 router.delete("/:id", imageController.delete);
