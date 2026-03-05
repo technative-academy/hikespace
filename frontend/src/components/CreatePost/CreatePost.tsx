@@ -1,6 +1,6 @@
 import styles from "./CreatePost.module.css";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 ("use client");
 
@@ -37,6 +37,8 @@ export default function CreatePost() {
   const frameworks = ["Pete", "Pete again", "Not Pete"] as const; // for testing, will swap to real users after it works as intended
 
   const anchor = useComboboxAnchor();
+
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [images, setImages] = useState<File[]>([]);
 
@@ -80,18 +82,23 @@ export default function CreatePost() {
     // Append images from state (since they're not in the form inputs)
     images.forEach((file) => formData.append("images", file));
 
+    // Reset the form and state
+    formRef.current?.reset();
+    setImages([]);
+    setSelectedParticipation([]);
+
     // Log all FormData entries for debugging
-    console.log("FormData entries:");
+    /* console.log("FormData entries:");
     for (const [key, value] of formData.entries()) {
       console.log(key, value);
     }
 
-    console.log("post created");
+    console.log("post created"); */
   }
 
   return (
     <div className={styles.wrapper}>
-      <form onSubmit={handleCreatePost}>
+      <form ref={formRef} onSubmit={handleCreatePost}>
         <label htmlFor="location_name">Location Name</label>
         <input type="text" name="location_name" />
         <label htmlFor="caption">Caption</label>
