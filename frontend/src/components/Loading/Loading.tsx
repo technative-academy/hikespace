@@ -1,3 +1,4 @@
+import { Empty, EmptyContent } from '../ui/empty'
 import { Spinner } from '../ui/spinner'
 
 interface LoadingThing {
@@ -5,7 +6,11 @@ interface LoadingThing {
 }
 
 export function Loading({ thing }: LoadingThing) {
-  return <div className="flex items-center justify-center min-h-[400px]">
-        <Spinner /> &nbsp; Loading{thing != null ? ` ${thing}` : ""}...
-      </div>
+  return (
+    <Empty>
+      <EmptyContent>
+        <Spinner className="size-8" /> &nbsp; Loading{thing != null ? ` ${thing}` : ""}...
+      </EmptyContent>
+    </Empty>
+  )
 }

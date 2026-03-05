@@ -26,6 +26,10 @@ export class ImageController {
     try {
       const image = await this.imageService.create(validated.data, files);
 
+      if (!image) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
       return res.status(201).json(ImageSchema.array().parse(image));
     } catch (error) {
       return res.status(500).json({
