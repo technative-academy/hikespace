@@ -53,7 +53,7 @@ export class ImageController {
 
       return res.status(200).json(ImageSchema.parse(getImage));
     } catch (error) {
-      return res.status(500).json({ message: "Failed to get image" });
+      return res.status(500).json({ message: "Failed to get image", error });
     }
   };
 
