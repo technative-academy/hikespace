@@ -1,4 +1,4 @@
-import type { LatLngExpression } from "leaflet";
+import { icon, type LatLngExpression } from "leaflet";
 import { useEffect, useState, useMemo } from "react";
 import { MapContainer, Marker, Polyline, TileLayer } from "react-leaflet";
 import styles from "./PostContent.module.css";
@@ -94,7 +94,15 @@ export default function PostContent() {
           />
           {/* Waypoint markers */}
           {post.route.coordinates.map((point) => (
-            <Marker key={point.join(";")} position={[point[1], point[0]]} />
+            <Marker key={point.join(";")} position={[point[1], point[0]]} icon={icon({
+              iconUrl: "/marker-icon.png",
+              iconRetinaUrl: "/marker-icon-2x.png",
+              shadowUrl: "/marker-shadow.png",
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+              shadowSize: [41, 41]
+            })} />
           ))}
 
           {/* FIXED: Use route state, not post.route */}
