@@ -163,7 +163,7 @@ export default function CreatePost() {
                 <React.Fragment>
                   {values.map((value: string) => (
                     <ComboboxChip key={value}>
-                      <Avatar className="h-4">
+                      <Avatar className="h-4 w-4">
                         <AvatarImage src="https://github.com/orangespaceman.png"></AvatarImage>
                       </Avatar>
                       {value}
