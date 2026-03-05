@@ -7,6 +7,7 @@ import { mockAuth } from "./middleware/mock-auth.js";
 import postRouter from "#modules/post/post.router.js";
 import participRouter from "#modules/participation/particip.router.js";
 import imageRouter from "#modules/image/image.router.js";
+import likeRouter from "#modules/like/like.router.js";
 
 const app = express();
 app.use(express.json());
@@ -20,6 +21,7 @@ app.use("/users", userRouter);
 app.use("/posts", postRouter);
 app.use("/participations", participRouter);
 app.use("/images", imageRouter);
+app.use("/likes", likeRouter);
 
 app.get("/", (_req, res) => {
   res.send("Hello from Express");
