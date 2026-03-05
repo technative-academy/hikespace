@@ -1,11 +1,11 @@
 ﻿import { createDocument } from "zod-openapi";
 import { z } from "zod";
 
-import {
-  CreateUserSchema,
-  PublicUserSchema,
-  UpdateUserSchema
-} from "#modules/user/user.zod.js";
+// import {
+//   CreateUserSchema,
+//   PublicUserSchema,
+//   UpdateUserSchema
+// } from "#modules/user/user.zod.js";
 
 const StatusOkSchema = z
   .object({ status: z.string() })
@@ -122,9 +122,9 @@ const IdPathParamSchema = z.coerce
   .positive()
   .meta({ id: "IdPathParam", example: 1 });
 
-const CreateUserOpenApiSchema = CreateUserSchema.meta({ id: "CreateUser" });
-const PublicUserOpenApiSchema = PublicUserSchema.meta({ id: "PublicUser" });
-const UpdateUserOpenApiSchema = UpdateUserSchema.meta({ id: "UpdateUser" });
+// const CreateUserOpenApiSchema = CreateUserSchema.meta({ id: "CreateUser" });
+// const PublicUserOpenApiSchema = PublicUserSchema.meta({ id: "PublicUser" });
+// const UpdateUserOpenApiSchema = UpdateUserSchema.meta({ id: "UpdateUser" });
 
 const AnyJsonSchema = z
   .record(z.string(), z.any())
@@ -162,84 +162,84 @@ const corePaths = {
   }
 };
 
-const userPaths = {
-  "/users": {
-    get: {
-      summary: "Get all users",
-      tags: ["Users"],
-      responses: {
-        "200": jsonResponse(z.array(PublicUserOpenApiSchema)),
-        "500": { description: "Server error" }
-      }
-    },
-    post: {
-      summary: "Create user",
-      tags: ["Users"],
-      requestBody: {
-        required: true,
-        content: {
-          "application/json": {
-            schema: CreateUserOpenApiSchema
-          }
-        }
-      },
-      responses: {
-        "201": jsonResponse(PublicUserOpenApiSchema, "Created"),
-        "400": { description: "Bad request" },
-        "500": { description: "Server error" }
-      }
-    }
-  },
+// const userPaths = {
+//   "/users": {
+//     get: {
+//       summary: "Get all users",
+//       tags: ["Users"],
+//       responses: {
+//         "200": jsonResponse(z.array(PublicUserOpenApiSchema)),
+//         "500": { description: "Server error" }
+//       }
+//     },
+//     post: {
+//       summary: "Create user",
+//       tags: ["Users"],
+//       requestBody: {
+//         required: true,
+//         content: {
+//           "application/json": {
+//             schema: CreateUserOpenApiSchema
+//           }
+//         }
+//       },
+//       responses: {
+//         "201": jsonResponse(PublicUserOpenApiSchema, "Created"),
+//         "400": { description: "Bad request" },
+//         "500": { description: "Server error" }
+//       }
+//     }
+//   },
 
-  "/users/{id}": {
-    get: {
-      summary: "Get user by id",
-      tags: ["Users"],
-      requestParams: {
-        path: IdPathParams
-      },
-      responses: {
-        "200": jsonResponse(PublicUserOpenApiSchema),
-        "400": { description: "Bad request" },
-        "404": { description: "Not found" }
-      }
-    },
-    put: {
-      summary: "Update user",
-      tags: ["Users"],
-      requestParams: {
-        path: IdPathParams
-      },
-      requestBody: {
-        required: true,
-        content: {
-          "application/json": {
-            schema: UpdateUserOpenApiSchema
-          }
-        }
-      },
-      responses: {
-        "200": jsonResponse(PublicUserOpenApiSchema),
-        "400": { description: "Bad request" },
-        "404": { description: "Not found" },
-        "500": { description: "Server error" }
-      }
-    },
-    delete: {
-      summary: "Delete user",
-      tags: ["Users"],
-      requestParams: {
-        path: IdPathParams
-      },
-      responses: {
-        "200": jsonResponse(StatusOkSchema),
-        "400": { description: "Bad request" },
-        "404": { description: "Not found" },
-        "500": { description: "Server error" }
-      }
-    }
-  }
-};
+//   "/users/{id}": {
+//     get: {
+//       summary: "Get user by id",
+//       tags: ["Users"],
+//       requestParams: {
+//         path: IdPathParams
+//       },
+//       responses: {
+//         "200": jsonResponse(PublicUserOpenApiSchema),
+//         "400": { description: "Bad request" },
+//         "404": { description: "Not found" }
+//       }
+//     },
+//     put: {
+//       summary: "Update user",
+//       tags: ["Users"],
+//       requestParams: {
+//         path: IdPathParams
+//       },
+//       requestBody: {
+//         required: true,
+//         content: {
+//           "application/json": {
+//             schema: UpdateUserOpenApiSchema
+//           }
+//         }
+//       },
+//       responses: {
+//         "200": jsonResponse(PublicUserOpenApiSchema),
+//         "400": { description: "Bad request" },
+//         "404": { description: "Not found" },
+//         "500": { description: "Server error" }
+//       }
+//     },
+//     delete: {
+//       summary: "Delete user",
+//       tags: ["Users"],
+//       requestParams: {
+//         path: IdPathParams
+//       },
+//       responses: {
+//         "200": jsonResponse(StatusOkSchema),
+//         "400": { description: "Bad request" },
+//         "404": { description: "Not found" },
+//         "500": { description: "Server error" }
+//       }
+//     }
+//   }
+// };
 
 const postPaths = {
   "/posts": {
@@ -344,7 +344,7 @@ const imagePaths = {
                 metadata: {
                   type: "string",
                   description:
-                    "JSON stringified array of image metadata (e.g. [{\"position\":0}])"
+                    'JSON stringified array of image metadata (e.g. [{"position":0}])'
                 },
                 images: {
                   type: "array",
@@ -384,7 +384,9 @@ const imagePaths = {
         path: IdPathParams
       },
       responses: {
-        "200": jsonResponse(z.object({ message: z.string() }).meta({ id: "MessageOk" })),
+        "200": jsonResponse(
+          z.object({ message: z.string() }).meta({ id: "MessageOk" })
+        ),
         "400": { description: "Bad request" },
         "500": { description: "Server error" }
       }
@@ -409,7 +411,7 @@ export const openapiDocument = createDocument({
 
   paths: {
     ...corePaths,
-    ...userPaths,
+    //...userPaths,
     ...postPaths,
     ...imagePaths
   },

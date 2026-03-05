@@ -17,7 +17,7 @@ const lineString4326 = customType<{ data: unknown; driverData: unknown }>({
 
 export const postTable = pgTable("post", {
   id: serial().primaryKey(),
-  owner_id: integer()
+  owner_id: text()
     .notNull()
     .references(() => userTable.id),
   description: text().notNull(),
