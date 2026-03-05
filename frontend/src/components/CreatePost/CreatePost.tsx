@@ -1,6 +1,6 @@
 import styles from "./CreatePost.module.css";
 import { Button } from "@/components/ui/button";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 
 ("use client");
 
@@ -43,6 +43,9 @@ import "leaflet/dist/leaflet.css";
 
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
+import { type Point } from "@/features/post";
+
+// set type for marker
 type MarkerType = {
   id: number;
   position: LatLngExpression;
@@ -63,6 +66,63 @@ export default function CreatePost() {
 
   const [markers, setMarkers] = useState<MarkerType[]>([]);
 
+  // testing for map trail routing
+  const toQueryString = (list: Point[]) =>
+    list.map(([lat, long]) => `${long},${lat}`).join(";");
+
+  const [myRoute, setMyRoute] = useState<LatLngExpression[]>([]);
+
+  const queryString = useMemo(
+    () =>
+      markers?.length >= 2
+        ? toQueryString(markers.map((m) => m.position as Point))
+        : null,
+    [markers], // Only to be recalculated when markers change
+  );
+
+  useEffect(() => {
+    const fetchRoute = async () => {
+      try {
+        // Openstreetmap API request: pointA -> pointB, get GeoJSON route for walking mode and pass to leaflet
+        const response = await fetch(
+          `https://routing.openstreetmap.de/routed-foot/route/v1/walking/${toQueryString(
+            markers.map((m) => m.position as Point),
+          )}?overview=full&geometries=geojson`,
+        );
+
+        // console.log(post.route);
+
+        const data = await response.json();
+        /* console.log("Raw coordinates:", data.routes[0].geometry.coordinates);
+        console.log(
+          "Coordinates count:",
+          data.routes[0].geometry.coordinates.length,
+        ); */
+
+        // console.log("API Response:", data);
+
+        // Extract coordinates and convert them [lng, lat] -> [lat, lng] for Leaflet to map
+        const coords = data.routes[0].geometry.coordinates as [
+          number,
+          number,
+        ][];
+
+        const reversedCoords = coords.map(
+          ([lng, lat]) => [lat, lng] as LatLngExpression,
+        );
+
+        setMyRoute(reversedCoords);
+        // console.log("Route set:", coords);
+      } catch (error) {
+        console.error("Error fetching route:", error);
+      }
+    };
+
+    if (queryString) {
+      fetchRoute();
+    }
+  }, [queryString]);
+
   // component to handle map clicks
   function AddMarker() {
     useMapEvents({
@@ -79,6 +139,7 @@ export default function CreatePost() {
     return null;
   }
 
+  // delete selected marker from list
   function deleteMarker(id: number) {
     setMarkers((prev) => prev.filter((marker) => marker.id !== id));
   }
@@ -131,12 +192,12 @@ export default function CreatePost() {
     setMarkers([]);
 
     // Log all FormData entries for debugging
-    console.log("FormData entries:");
+    /* console.log("FormData entries:");
     for (const [key, value] of formData.entries()) {
       console.log(key, value);
     }
 
-    console.log("post created");
+    console.log("post created"); */
   }
 
   return (
@@ -216,7 +277,7 @@ export default function CreatePost() {
             />
           ))}
 
-          {route.length > 1 && <Polyline positions={route} />}
+          {route.length > 1 && <Polyline positions={myRoute} />}
         </MapContainer>
         <label htmlFor="images">Photo(s)</label>
         <FileUpload
