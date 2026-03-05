@@ -21,8 +21,6 @@ export class ImageController {
       });
     }
 
-    // TODO: add BackBlaze to host images saved to database
-
     try {
       const image = await this.imageService.create(validated.data, files);
 
@@ -51,6 +49,10 @@ export class ImageController {
     try {
       const getImage = await this.imageService.get(parsedBody.data.id);
 
+      if (!getImage) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+
       return res.status(200).json(ImageSchema.parse(getImage));
     } catch (error) {
       return res.status(500).json({ message: "Failed to get image", error });
@@ -68,10 +70,15 @@ export class ImageController {
     }
 
     try {
-      await this.imageService.delete(parsedBody.data.id);
+      let result = await this.imageService.delete(parsedBody.data.id);
+
+      if (result === null) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+
       return res.status(200).json({ message: "OK" });
     } catch (error) {
-      return res.status(500).json({ message: "Error deleting file" });
+      return res.status(500).json({ message: "Error deleting image" });
     }
   };
 }
