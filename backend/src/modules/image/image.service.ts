@@ -27,7 +27,7 @@ export class ImageService {
 
     let result: Image[] = await Promise.all(
       images.map(async (image, idx) => {
-        let imageKey = new Date().getTime().toString() + image.filename;
+        let imageKey = new Date().getTime().toString() + image.originalname;
 
         await s3.send(
           new PutObjectCommand({
