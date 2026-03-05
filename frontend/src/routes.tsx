@@ -31,9 +31,9 @@ const routes = [
         path: "createpost",
         element: <CreatePost />,
       },
+      {
         path: "*",
         element: <PageNotFound />,
-
       }
     ],
   },
