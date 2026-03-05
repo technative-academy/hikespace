@@ -9,7 +9,7 @@ export const PublicUserSchema = UserSchema.omit({
 });
 
 export const CreateUserSchema = createInsertSchema(userTable)
-  .omit({ id: true, password_hash: true })
+  .omit({ id: true, password_hash: true, image_url: true })
   .extend({
     password: z.string().min(8).max(20)
   });
@@ -17,8 +17,7 @@ export const CreateUserSchema = createInsertSchema(userTable)
 export const UpdateUserSchema = UserSchema.omit({
   id: true,
   password_hash: true,
-  image_url: true,
-  email: true
+  image_url: true
 })
   .partial()
   .strict();

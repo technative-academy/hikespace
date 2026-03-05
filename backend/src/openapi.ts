@@ -164,6 +164,14 @@ const corePaths = {
 
 const userPaths = {
   "/users": {
+    get: {
+      summary: "Get all users",
+      tags: ["Users"],
+      responses: {
+        "200": jsonResponse(z.array(PublicUserOpenApiSchema)),
+        "500": { description: "Server error" }
+      }
+    },
     post: {
       summary: "Create user",
       tags: ["Users"],
