@@ -31,7 +31,22 @@ import {
   useComboboxAnchor,
 } from "@/components/ui/combobox";
 
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Polyline,
+  useMapEvents,
+} from "react-leaflet";
+import type { LatLngExpression } from "leaflet";
+import "leaflet/dist/leaflet.css";
+
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
+
+type MarkerType = {
+  id: number;
+  position: LatLngExpression;
+};
 
 export default function CreatePost() {
   const frameworks = ["Pete", "Pete again", "Not Pete"] as const; // for testing, will swap to real users after it works as intended
@@ -46,6 +61,31 @@ export default function CreatePost() {
     frameworks[0],
   ]);
 
+  const [markers, setMarkers] = useState<MarkerType[]>([]);
+
+  // component to handle map clicks
+  function AddMarker() {
+    useMapEvents({
+      click(e) {
+        const newMarker: MarkerType = {
+          id: Date.now(),
+          position: [e.latlng.lat, e.latlng.lng],
+        };
+
+        setMarkers((prev) => [...prev, newMarker]);
+      },
+    });
+
+    return null;
+  }
+
+  function deleteMarker(id: number) {
+    setMarkers((prev) => prev.filter((marker) => marker.id !== id));
+  }
+
+  const route = markers.map((m) => m.position);
+
+  // handle image files
   const onFileValidate = React.useCallback(
     (file: File): string | null => {
       // Validate max images
@@ -82,18 +122,21 @@ export default function CreatePost() {
     // Append images from state (since they're not in the form inputs)
     images.forEach((file) => formData.append("images", file));
 
-    // Reset the form and state
-    formRef.current?.reset();
+    // append markers from state
+    (formData.append("routes", JSON.stringify(route)),
+      // Reset the form and state
+      formRef.current?.reset());
     setImages([]);
     setSelectedParticipation([]);
+    setMarkers([]);
 
     // Log all FormData entries for debugging
-    /* console.log("FormData entries:");
+    console.log("FormData entries:");
     for (const [key, value] of formData.entries()) {
       console.log(key, value);
     }
 
-    console.log("post created"); */
+    console.log("post created");
   }
 
   return (
@@ -131,7 +174,7 @@ export default function CreatePost() {
               )}
             </ComboboxValue>
           </ComboboxChips>
-          <ComboboxContent anchor={anchor}>
+          <ComboboxContent anchor={anchor} className="z-[9999]">
             <ComboboxEmpty>No items found.</ComboboxEmpty>
             <ComboboxList>
               {(item) => (
@@ -150,6 +193,31 @@ export default function CreatePost() {
           name="participation"
           value={JSON.stringify(selectedParticipation)}
         />
+        <label htmlFor="markers">Pin your journey</label>
+        <MapContainer
+          center={[50.82882, -0.140741]}
+          zoom={13}
+          style={{ height: "500px", width: "100%", zIndex: 0 }}
+        >
+          <TileLayer
+            attribution="&copy; OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+
+          <AddMarker />
+
+          {markers.map((marker) => (
+            <Marker
+              key={marker.id}
+              position={marker.position}
+              eventHandlers={{
+                click: () => deleteMarker(marker.id),
+              }}
+            />
+          ))}
+
+          {route.length > 1 && <Polyline positions={route} />}
+        </MapContainer>
         <label htmlFor="images">Photo(s)</label>
         <FileUpload
           value={images}
