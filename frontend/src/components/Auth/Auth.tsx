@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/tabs.tsx";
 import { Button } from "@/components/ui/button";
 import styles from "./Auth.module.css";
-import { Field, FieldGroup, FieldLabel, FieldSet } from "../ui/field";
+import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet } from "../ui/field";
 import { Input } from "../ui/input";
 
 export default function Auth() {
@@ -71,6 +71,11 @@ export default function Auth() {
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                   <Input type="password" name="password" />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="profile-picture">Profile picture</FieldLabel>
+                  <Input id="profile-picture" type="file" />
+                  <FieldDescription>Select a profile picture to upload.</FieldDescription>
                 </Field>
               </FieldGroup>
             </FieldSet>
