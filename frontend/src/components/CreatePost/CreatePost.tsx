@@ -18,8 +18,31 @@ import {
   FileUploadTrigger,
 } from "@/components/ui/file-upload";
 
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxValue,
+  useComboboxAnchor,
+} from "@/components/ui/combobox";
+
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+
 export default function CreatePost() {
+  const frameworks = ["Pete", "Pete again", "Not Pete"] as const; // for testing, will swap to real users after it works as intended
+
+  const anchor = useComboboxAnchor();
+
   const [images, setImages] = useState<File[]>([]);
+
+  const [selectedParticipation, setSelectedParticipation] = useState<string[]>([
+    frameworks[0],
+  ]);
 
   const onFileValidate = React.useCallback(
     (file: File): string | null => {
@@ -50,25 +73,76 @@ export default function CreatePost() {
     });
   }, []);
 
-  async function handleCreatePost() {
-    const formData = new FormData();
+  async function handleCreatePost(event: React.SubmitEvent<HTMLFormElement>) {
+    event.preventDefault(); // Prevent the default form submission
+    const formData = new FormData(event.target as HTMLFormElement); // Get data from the form
 
+    // Append images from state (since they're not in the form inputs)
     images.forEach((file) => formData.append("images", file));
 
-    console.log(images);
+    // Log all FormData entries for debugging
+    console.log("FormData entries:");
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
 
     console.log("post created");
   }
 
   return (
     <div className={styles.wrapper}>
-      <form action={handleCreatePost}>
+      <form onSubmit={handleCreatePost}>
         <label htmlFor="location_name">Location Name</label>
         <input type="text" name="location_name" />
         <label htmlFor="caption">Caption</label>
         <input type="text" name="caption" />
         <label htmlFor="description">Description</label>
-        <textarea name="descrition"></textarea>
+        <textarea name="description"></textarea>
+        <label htmlFor="participation">Tag friends</label>
+        <Combobox
+          multiple
+          autoHighlight
+          items={frameworks}
+          defaultValue={[frameworks[0]]}
+          value={selectedParticipation}
+          onValueChange={setSelectedParticipation}
+        >
+          <ComboboxChips ref={anchor} className="w-full max-w-xs">
+            <ComboboxValue>
+              {(values) => (
+                <React.Fragment>
+                  {values.map((value: string) => (
+                    <ComboboxChip key={value}>
+                      <Avatar className="h-4">
+                        <AvatarImage src="https://github.com/orangespaceman.png"></AvatarImage>
+                      </Avatar>
+                      {value}
+                    </ComboboxChip>
+                  ))}
+                  <ComboboxChipsInput />
+                </React.Fragment>
+              )}
+            </ComboboxValue>
+          </ComboboxChips>
+          <ComboboxContent anchor={anchor}>
+            <ComboboxEmpty>No items found.</ComboboxEmpty>
+            <ComboboxList>
+              {(item) => (
+                <ComboboxItem key={item} value={item}>
+                  <Avatar>
+                    <AvatarImage src="https://github.com/orangespaceman.png"></AvatarImage>
+                  </Avatar>
+                  {item}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
+        <input
+          type="hidden"
+          name="participation"
+          value={JSON.stringify(selectedParticipation)}
+        />
         <label htmlFor="images">Photo(s)</label>
         <FileUpload
           value={images}
