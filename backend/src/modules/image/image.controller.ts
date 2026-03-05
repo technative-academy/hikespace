@@ -8,19 +8,23 @@ export class ImageController {
 
   create = async (req: Request, res: Response) => {
     const files = req.files as Express.Multer.File[];
-    const parsedBody = uploadImageMetadataSchema.safeParse(req.body);
+    const parsedBody = {
+      post_id: Number(req.body.post_id),
+      metadata: JSON.parse(req.body.metadata)
+    };
+    const validated = uploadImageMetadataSchema.safeParse(parsedBody);
 
-    if (!parsedBody.success) {
+    if (!validated.success) {
       return res.status(400).json({
         message: "Invalid request body",
-        errors: parsedBody.error
+        errors: validated.error
       });
     }
 
     // TODO: add BackBlaze to host images saved to database
 
     try {
-      const image = await this.imageService.create(parsedBody.data, files);
+      const image = await this.imageService.create(validated.data, files);
 
       if (!image) {
         return res.status(404).json({ message: "Post not found" });
@@ -49,7 +53,7 @@ export class ImageController {
 
       return res.status(200).json(ImageSchema.parse(getImage));
     } catch (error) {
-      return res.status(500).json({ message: "Failed to get image" });
+      return res.status(500).json({ message: "Failed to get image", error });
     }
   };
 
