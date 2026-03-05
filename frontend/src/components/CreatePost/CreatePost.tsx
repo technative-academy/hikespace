@@ -43,41 +43,52 @@ import "leaflet/dist/leaflet.css";
 
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
+import { Loading } from "../Loading/Loading";
+
+import useSWR from "swr";
+
 type MarkerType = {
   id: number;
   position: LatLngExpression;
 };
 
+type User = { id: number; name: string; email: string };
+
+// component to handle map clicks
+interface AddMarkerProps {
+  setMarkers: React.Dispatch<React.SetStateAction<MarkerType[]>>;
+}
+function AddMarker({ setMarkers }: AddMarkerProps) {
+  useMapEvents({
+    click(e) {
+      const newMarker: MarkerType = {
+        id: Date.now(),
+        position: [e.latlng.lat, e.latlng.lng],
+      };
+
+      setMarkers((prev) => [...prev, newMarker]);
+    },
+  });
+
+  return null;
+}
+
 export default function CreatePost() {
-  const frameworks = ["Pete", "Pete again", "Not Pete"] as const; // for testing, will swap to real users after it works as intended
+  // fallback list while developing – once users load we replace it
+  const frameworks = ["Pete", "Pete again", "Not Pete"] as const;
 
+  const { data: users, error, isLoading } = useSWR<User[]>("/api/users");
+  const userItems: User[] = users ?? [];
+  const itemValues = userItems.map((u) => String(u.id));
   const anchor = useComboboxAnchor();
-
   const formRef = useRef<HTMLFormElement>(null);
-
   const [images, setImages] = useState<File[]>([]);
-
-  const [selectedParticipation, setSelectedParticipation] = useState<string[]>([
-    frameworks[0],
-  ]);
-
+  const [selectedParticipation, setSelectedParticipation] = useState<number[]>(
+    [],
+  );
   const [markers, setMarkers] = useState<MarkerType[]>([]);
 
-  // component to handle map clicks
-  function AddMarker() {
-    useMapEvents({
-      click(e) {
-        const newMarker: MarkerType = {
-          id: Date.now(),
-          position: [e.latlng.lat, e.latlng.lng],
-        };
-
-        setMarkers((prev) => [...prev, newMarker]);
-      },
-    });
-
-    return null;
-  }
+  // no early returns; we'll handle loading/error inside the JSX below
 
   function deleteMarker(id: number) {
     setMarkers((prev) => prev.filter((marker) => marker.id !== id));
@@ -149,45 +160,59 @@ export default function CreatePost() {
         <label htmlFor="description">Description</label>
         <textarea name="description"></textarea>
         <label htmlFor="participation">Tag friends</label>
-        <Combobox
-          multiple
-          autoHighlight
-          items={frameworks}
-          defaultValue={[frameworks[0]]}
-          value={selectedParticipation}
-          onValueChange={setSelectedParticipation}
-        >
-          <ComboboxChips ref={anchor} className="w-full max-w-xs">
-            <ComboboxValue>
-              {(values) => (
-                <React.Fragment>
-                  {values.map((value: string) => (
-                    <ComboboxChip key={value}>
-                      <Avatar className="h-4">
-                        <AvatarImage src="https://github.com/orangespaceman.png"></AvatarImage>
-                      </Avatar>
-                      {value}
-                    </ComboboxChip>
-                  ))}
-                  <ComboboxChipsInput />
-                </React.Fragment>
-              )}
-            </ComboboxValue>
-          </ComboboxChips>
-          <ComboboxContent anchor={anchor} className="z-[9999]">
-            <ComboboxEmpty>No items found.</ComboboxEmpty>
-            <ComboboxList>
-              {(item) => (
-                <ComboboxItem key={item} value={item}>
-                  <Avatar>
-                    <AvatarImage src="https://github.com/orangespaceman.png"></AvatarImage>
-                  </Avatar>
-                  {item}
-                </ComboboxItem>
-              )}
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
+        {isLoading ? (
+          <div>Loading users…</div>
+        ) : error ? (
+          <div className="text-destructive">Error: {error.message}</div>
+        ) : (
+          <Combobox
+            multiple
+            autoHighlight
+            items={itemValues}
+            value={selectedParticipation.map(String)}
+            onValueChange={(vals) =>
+              setSelectedParticipation(vals.map((v) => parseInt(v, 10)))
+            }
+          >
+            <ComboboxChips ref={anchor} className="w-full max-w-xs">
+              <ComboboxValue>
+                {(values) => (
+                  <>
+                    {values.map((idStr: string) => {
+                      const user = userItems.find(
+                        (u) => String(u.id) === idStr,
+                      );
+                      return (
+                        <ComboboxChip key={idStr}>
+                          {user ? user.name : idStr}
+                        </ComboboxChip>
+                      );
+                    })}
+                    <ComboboxChipsInput />
+                  </>
+                )}
+              </ComboboxValue>
+            </ComboboxChips>
+            <ComboboxContent anchor={anchor} className="z-[9999]">
+              <ComboboxEmpty>No users found.</ComboboxEmpty>
+              <ComboboxList>
+                {(idStr) => {
+                  const user = userItems.find((u) => String(u.id) === idStr)!;
+                  return (
+                    <ComboboxItem key={idStr} value={idStr}>
+                      <div className="flex flex-col">
+                        <span>{user.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {user.email}
+                        </span>
+                      </div>
+                    </ComboboxItem>
+                  );
+                }}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        )}
         <input
           type="hidden"
           name="participation"
@@ -204,7 +229,7 @@ export default function CreatePost() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          <AddMarker />
+          <AddMarker setMarkers={setMarkers} />
 
           {markers.map((marker) => (
             <Marker
