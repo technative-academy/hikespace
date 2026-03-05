@@ -6,6 +6,6 @@ export const imageTable = pgTable("image", {
   post_id: integer()
     .notNull()
     .references(() => postTable.id),
-  image_url: varchar({ length: 255 }).notNull(),
+  image_url: varchar().notNull(),
   position: integer().notNull()
 });

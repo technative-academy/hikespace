@@ -6,6 +6,8 @@ import {
 } from "@/components/ui/tabs.tsx";
 import { Button } from "@/components/ui/button";
 import styles from "./Auth.module.css";
+import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet } from "../ui/field";
+import { Input } from "../ui/input";
 
 export default function Auth() {
   async function signIn() {
@@ -36,10 +38,18 @@ export default function Auth() {
         <TabsContent value="sign_in">
           {/* Sign In Form */}
           <form action={signIn}>
-            <label htmlFor="username">Username</label>
-            <input type="text" name="username" />
-            <label htmlFor="password">Password</label>
-            <input type="password" name="password" />
+            <FieldSet className="w-full max-w-xs">
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="username">Username</FieldLabel>
+                  <Input type="text" name="username" />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <Input type="password" name="password" />
+                </Field>
+              </FieldGroup>
+            </FieldSet>
             <Button variant="outline" type="submit">
               Log In
             </Button>
@@ -48,12 +58,27 @@ export default function Auth() {
         <TabsContent value="sign_up">
           {/* Sign Up Form */}
           <form action={signUp}>
-            <label htmlFor="email">Email</label>
-            <input type="email" name="email" />
-            <label htmlFor="username">Username</label>
-            <input type="text" name="username" />
-            <label htmlFor="password">Password</label>
-            <input type="password" name="password" />
+            <FieldSet className="w-full max-w-xs">
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <Input type="email" name="email" />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="username">Username</FieldLabel>
+                  <Input type="text" name="username" />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <Input type="password" name="password" />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="profile-picture">Profile picture</FieldLabel>
+                  <Input id="profile-picture" type="file" />
+                  <FieldDescription>Select a profile picture to upload.</FieldDescription>
+                </Field>
+              </FieldGroup>
+            </FieldSet>
             <Button variant="outline" type="submit">
               Sign Up
             </Button>

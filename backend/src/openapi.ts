@@ -88,6 +88,34 @@ const UpdatePostSchema = CreatePostSchema.partial().meta({
   }
 });
 
+const ImageSchema = z
+  .object({
+    id: z.number().int(),
+    post_id: z.number().int(),
+    image_url: z.string(),
+    position: z.number().int()
+  })
+  .meta({
+    id: "Image",
+    example: {
+      id: 1,
+      post_id: 10,
+      image_url: "1738757200123-trail.jpg",
+      position: 0
+    }
+  });
+
+const UploadImageMetadataSchema = z
+  .array(
+    z.object({
+      position: z.number().int()
+    })
+  )
+  .meta({
+    id: "UploadImageMetadata",
+    example: [{ position: 0 }, { position: 1 }]
+  });
+
 const IdPathParamSchema = z.coerce
   .number()
   .int()
@@ -136,6 +164,14 @@ const corePaths = {
 
 const userPaths = {
   "/users": {
+    get: {
+      summary: "Get all users",
+      tags: ["Users"],
+      responses: {
+        "200": jsonResponse(z.array(PublicUserOpenApiSchema)),
+        "500": { description: "Server error" }
+      }
+    },
     post: {
       summary: "Create user",
       tags: ["Users"],
@@ -287,6 +323,75 @@ const postPaths = {
   }
 };
 
+const imagePaths = {
+  "/images": {
+    post: {
+      summary: "Upload images",
+      tags: ["Images"],
+      requestBody: {
+        required: true,
+        content: {
+          "multipart/form-data": {
+            schema: {
+              type: "object",
+              required: ["post_id", "metadata", "images"],
+              properties: {
+                post_id: {
+                  type: "integer",
+                  format: "int32",
+                  description: "Post id for the uploaded images"
+                },
+                metadata: {
+                  type: "string",
+                  description:
+                    "JSON stringified array of image metadata (e.g. [{\"position\":0}])"
+                },
+                images: {
+                  type: "array",
+                  items: { type: "string", format: "binary" },
+                  maxItems: 5
+                }
+              }
+            } as any
+          }
+        }
+      },
+      responses: {
+        "201": jsonResponse(z.array(ImageSchema), "Created"),
+        "400": { description: "Bad request" },
+        "404": { description: "Post not found" },
+        "500": { description: "Server error" }
+      }
+    }
+  },
+  "/images/{id}": {
+    get: {
+      summary: "Get image by id",
+      tags: ["Images"],
+      requestParams: {
+        path: IdPathParams
+      },
+      responses: {
+        "200": jsonResponse(ImageSchema),
+        "400": { description: "Bad request" },
+        "500": { description: "Server error" }
+      }
+    },
+    delete: {
+      summary: "Delete image",
+      tags: ["Images"],
+      requestParams: {
+        path: IdPathParams
+      },
+      responses: {
+        "200": jsonResponse(z.object({ message: z.string() }).meta({ id: "MessageOk" })),
+        "400": { description: "Bad request" },
+        "500": { description: "Server error" }
+      }
+    }
+  }
+};
+
 export const openapiDocument = createDocument({
   openapi: "3.0.3",
   info: {
@@ -298,13 +403,15 @@ export const openapiDocument = createDocument({
     { name: "Core" },
     { name: "Users" },
     { name: "Posts" },
+    { name: "Images" },
     { name: "Test" }
   ],
 
   paths: {
     ...corePaths,
     ...userPaths,
-    ...postPaths
+    ...postPaths,
+    ...imagePaths
   },
 
   components: {
@@ -313,7 +420,9 @@ export const openapiDocument = createDocument({
       LineStringGeoJSON: LineStringGeoJSONSchema,
       Post: PostSchema,
       CreatePost: CreatePostSchema,
-      UpdatePost: UpdatePostSchema
+      UpdatePost: UpdatePostSchema,
+      Image: ImageSchema,
+      UploadImageMetadata: UploadImageMetadataSchema
     }
   }
 });

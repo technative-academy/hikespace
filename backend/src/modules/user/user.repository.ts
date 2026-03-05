@@ -20,6 +20,12 @@ export class UserRepository {
     return user ?? null;
   }
 
+  async getAll(): Promise<User[]> {
+    const allUsers = await db.select().from(userTable);
+
+    return allUsers;
+  }
+
   async update(
     id: number,
     data: Partial<Omit<User, "id" | "password_hash">>

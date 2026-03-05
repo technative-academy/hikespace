@@ -1,26 +1,34 @@
 import type { Request, Response } from "express";
 import type { ImageService } from "./image.service.js";
-import { CreateImageSchema, ImageSchema } from "./image.zod.js";
+import { uploadImageMetadataSchema, ImageSchema } from "./image.zod.js";
+import { IdParamSchema } from "#utils/validators.js";
 
 export class ImageController {
   constructor(private readonly imageService: ImageService) {}
 
   create = async (req: Request, res: Response) => {
-    const parsedBody = CreateImageSchema.safeParse(req.body);
+    const files = req.files as Express.Multer.File[];
+    const parsedBody = {
+      post_id: Number(req.body.post_id),
+      metadata: JSON.parse(req.body.metadata)
+    };
+    const validated = uploadImageMetadataSchema.safeParse(parsedBody);
 
-    if (!parsedBody.success) {
+    if (!validated.success) {
       return res.status(400).json({
         message: "Invalid request body",
-        errors: parsedBody.error.flatten()
+        errors: validated.error
       });
     }
 
-    // TODO: add BackBlaze to host images saved to database
-
     try {
-      const image = await this.imageService.create(parsedBody.data);
+      const image = await this.imageService.create(validated.data, files);
 
-      return res.status(201).json(ImageSchema.parse(image));
+      if (!image) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+
+      return res.status(201).json(ImageSchema.array().parse(image));
     } catch (error) {
       return res.status(500).json({
         message: "Failed to save image"
@@ -28,9 +36,49 @@ export class ImageController {
     }
   };
 
-  get = async (req: Request, res: Response) => {};
+  get = async (req: Request, res: Response) => {
+    const parsedBody = IdParamSchema.safeParse(req.params);
 
-  update = async (req: Request, res: Response) => {};
+    if (!parsedBody.success) {
+      return res.status(400).json({
+        message: "Invalid request body",
+        errors: parsedBody.error
+      });
+    }
 
-  delete = async (req: Request, res: Response) => {};
+    try {
+      const getImage = await this.imageService.get(parsedBody.data.id);
+
+      if (!getImage) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+
+      return res.status(200).json(ImageSchema.parse(getImage));
+    } catch (error) {
+      return res.status(500).json({ message: "Failed to get image", error });
+    }
+  };
+
+  delete = async (req: Request, res: Response) => {
+    const parsedBody = IdParamSchema.safeParse(req.params);
+
+    if (!parsedBody.success) {
+      return res.status(400).json({
+        message: "Invalid request body",
+        errors: parsedBody.error
+      });
+    }
+
+    try {
+      let result = await this.imageService.delete(parsedBody.data.id);
+
+      if (result === null) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+
+      return res.status(200).json({ message: "OK" });
+    } catch (error) {
+      return res.status(500).json({ message: "Error deleting image" });
+    }
+  };
 }

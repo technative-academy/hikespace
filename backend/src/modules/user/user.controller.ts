@@ -12,17 +12,17 @@ export class UserController {
 
   // POST /users
   create = async (req: Request, res: Response) => {
-    const parsedBody = CreateUserSchema.safeParse(req.body);
+    const validated = CreateUserSchema.safeParse(req.body);
 
-    if (!parsedBody.success) {
+    if (!validated.success) {
       return res.status(400).json({
         message: "Invalid request body",
-        errors: parsedBody.error.flatten()
+        errors: validated.error.flatten()
       });
     }
 
     try {
-      const user = await this.userService.create(parsedBody.data);
+      const user = await this.userService.create(validated.data);
 
       return res.status(201).json(PublicUserSchema.parse(user));
     } catch (error) {
@@ -54,27 +54,38 @@ export class UserController {
     return res.status(200).json(PublicUserSchema.parse(user));
   };
 
+  getAll = async (_req: Request, res: Response) => {
+    const allUsers = await this.userService.getAll();
+
+    return res.status(200).json(allUsers);
+  };
+
   // PUT /users/:id
   update = async (req: Request, res: Response) => {
-    const parsedParams = IdParamSchema.safeParse(req.params);
+    const validatedParams = IdParamSchema.safeParse(req.params);
 
-    if (!parsedParams.success) {
+    if (!validatedParams.success) {
       return res.status(400).json({
         message: "Invalid id parameter",
-        errors: parsedParams.error.flatten()
+        errors: validatedParams.error.flatten()
       });
     }
 
-    const parsedBody = UpdateUserSchema.safeParse(req.body);
+    const parsedBody = {
+      username: req.body.username,
+      email: req.body.email
+    };
 
-    if (!parsedBody.success) {
+    const validatedBody = UpdateUserSchema.safeParse(parsedBody);
+
+    if (!validatedBody.success) {
       return res.status(400).json({
         message: "Invalid request body",
-        errors: parsedBody.error.flatten()
+        errors: validatedBody.error.flatten()
       });
     }
 
-    if (Object.keys(parsedBody.data).length === 0) {
+    if (Object.keys(validatedBody.data).length === 0) {
       return res.status(400).json({
         message: "No updatable fields provided"
       });
@@ -82,8 +93,9 @@ export class UserController {
 
     try {
       const user = await this.userService.update(
-        parsedParams.data.id,
-        parsedBody.data
+        validatedParams.data.id,
+        validatedBody.data,
+        req.file
       );
 
       if (!user) {

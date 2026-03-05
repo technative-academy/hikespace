@@ -1,4 +1,4 @@
-import type { LatLngExpression } from "leaflet";
+import { icon, type LatLngExpression } from "leaflet";
 import { useEffect, useState, useMemo } from "react";
 import { MapContainer, Marker, Polyline, TileLayer } from "react-leaflet";
 import styles from "./PostContent.module.css";
@@ -6,7 +6,6 @@ import "leaflet/dist/leaflet.css";
 import { type Point, usePost } from "@/features/post";
 import { useParams } from "react-router-dom";
 
-import PostNotFound from "./PostNotFound";
 import { Card, CardContent } from "../ui/card";
 import {
   Carousel,
@@ -16,6 +15,8 @@ import {
   CarouselPrevious,
 } from "../ui/carousel";
 import { Loading } from "../Loading/Loading";
+import { Empty, EmptyContent, EmptyTitle } from "../ui/empty";
+import { Button } from "../ui/button";
 
 const toQueryString = (list: Point[]) =>
   list.map(([lat, lng]) => `${lat},${lng}`).join(";");
@@ -63,9 +64,20 @@ export default function PostContent() {
   }, [queryString]);
 
   if (isLoading) return <Loading thing="post" />;
-  if (error || !post || !post.route || !post.route.coordinates || post.route.coordinates.length === 0) {
-    return <PostNotFound />;
+  if (!post) {
+    return (
+      <Empty>
+        <EmptyTitle>404: Post not found</EmptyTitle>
+        <EmptyContent>
+          The post you're looking for doesn't exist or has been removed.
+          <Button asChild>
+            <a href="/">Go Home</a>
+          </Button>
+        </EmptyContent>
+      </Empty>
+    )
   }
+  if (error) throw error;
 
   return (
     <div className={styles.wrapper}>
@@ -82,7 +94,15 @@ export default function PostContent() {
           />
           {/* Waypoint markers */}
           {post.route.coordinates.map((point) => (
-            <Marker key={point.join(";")} position={[point[1], point[0]]} />
+            <Marker key={point.join(";")} position={[point[1], point[0]]} icon={icon({
+              iconUrl: "/marker-icon.png",
+              iconRetinaUrl: "/marker-icon-2x.png",
+              shadowUrl: "/marker-shadow.png",
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+              shadowSize: [41, 41]
+            })} />
           ))}
 
           {/* FIXED: Use route state, not post.route */}
