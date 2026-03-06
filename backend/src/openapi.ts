@@ -139,6 +139,49 @@ const CreateParticipationSchema = z
     }
   });
 
+const LikeSchema = z
+  .object({
+    id: z.number().int(),
+    post_id: z.number().int(),
+    user_id: z.string()
+  })
+  .meta({
+    id: "Like",
+    example: {
+      id: 1,
+      post_id: 10,
+      user_id: "user_123abc"
+    }
+  });
+
+const CreateLikeSchema = z
+  .object({
+    post_id: z.number().int(),
+    user_id: z.string()
+  })
+  .meta({
+    id: "CreateLike",
+    example: {
+      post_id: 10,
+      user_id: "user_123abc"
+    }
+  });
+
+const FollowSchema = z
+  .object({
+    follower_id: z.string(),
+    following_id: z.string(),
+    created_at: z.string().datetime()
+  })
+  .meta({
+    id: "Follow",
+    example: {
+      follower_id: "user_current",
+      following_id: "user_123abc",
+      created_at: "2026-03-06T12:00:00.000Z"
+    }
+  });
+
 const IdPathParamSchema = z.coerce
   .number()
   .int()
@@ -478,6 +521,79 @@ const participationPaths = {
   }
 };
 
+const likePaths = {
+  "/likes": {
+    post: {
+      summary: "Create like",
+      tags: ["Likes"],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: CreateLikeSchema
+          }
+        }
+      },
+      responses: {
+        "201": jsonResponse(LikeSchema, "Created"),
+        "400": { description: "Bad request" },
+        "404": { description: "User or post not found" },
+        "500": { description: "Server error" }
+      }
+    }
+  },
+  "/likes/{id}": {
+    delete: {
+      summary: "Delete like",
+      tags: ["Likes"],
+      requestParams: {
+        path: IdPathParams
+      },
+      responses: {
+        "200": jsonResponse(
+          z.object({ message: z.string() }).meta({ id: "LikeMessageOk" })
+        ),
+        "400": { description: "Bad request" },
+        "500": { description: "Server error" }
+      }
+    }
+  }
+};
+
+const followPaths = {
+  "/follows/{id}": {
+    post: {
+      summary: "Follow user",
+      tags: ["Follows"],
+      requestParams: {
+        path: UserIdPathParams
+      },
+      responses: {
+        "201": jsonResponse(FollowSchema, "Created"),
+        "400": { description: "Bad request" },
+        "401": { description: "Unauthorized" },
+        "404": { description: "Following ID not found" },
+        "500": { description: "Server error" }
+      }
+    },
+    delete: {
+      summary: "Unfollow user",
+      tags: ["Follows"],
+      requestParams: {
+        path: UserIdPathParams
+      },
+      responses: {
+        "200": jsonResponse(
+          z.object({ message: z.string() }).meta({ id: "FollowMessageOk" })
+        ),
+        "400": { description: "Bad request" },
+        "401": { description: "Unauthorized" },
+        "500": { description: "Server error" }
+      }
+    }
+  }
+};
+
 export const openapiDocument = createDocument({
   openapi: "3.0.3",
   info: {
@@ -491,6 +607,8 @@ export const openapiDocument = createDocument({
     { name: "Posts" },
     { name: "Images" },
     { name: "Participations" },
+    { name: "Likes" },
+    { name: "Follows" },
     { name: "Test" }
   ],
 
@@ -499,7 +617,9 @@ export const openapiDocument = createDocument({
     ...userPaths,
     ...postPaths,
     ...imagePaths,
-    ...participationPaths
+    ...participationPaths,
+    ...likePaths,
+    ...followPaths
   },
 
   components: {
@@ -514,7 +634,10 @@ export const openapiDocument = createDocument({
       Image: ImageSchema,
       UploadImageMetadata: UploadImageMetadataSchema,
       Participation: ParticipationSchema,
-      CreateParticipation: CreateParticipationSchema
+      CreateParticipation: CreateParticipationSchema,
+      Like: LikeSchema,
+      CreateLike: CreateLikeSchema,
+      Follow: FollowSchema
     }
   }
 });
