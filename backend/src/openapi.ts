@@ -111,6 +111,34 @@ const UploadImageMetadataSchema = z
     example: [{ position: 0 }, { position: 1 }]
   });
 
+const ParticipationSchema = z
+  .object({
+    id: z.number().int(),
+    user_id: z.string(),
+    post_id: z.number().int()
+  })
+  .meta({
+    id: "Participation",
+    example: {
+      id: 1,
+      user_id: "user_123abc",
+      post_id: 10
+    }
+  });
+
+const CreateParticipationSchema = z
+  .object({
+    user_id: z.string(),
+    post_id: z.number().int()
+  })
+  .meta({
+    id: "CreateParticipation",
+    example: {
+      user_id: "user_123abc",
+      post_id: 10
+    }
+  });
+
 const IdPathParamSchema = z.coerce
   .number()
   .int()
@@ -199,7 +227,9 @@ const userPaths = {
         "403": { description: "Forbidden" },
         "500": { description: "Server error" }
       }
-    },
+    }
+  },
+  "/users/avatar": {
     put: {
       summary: "Update user profile image",
       tags: ["Users"],
@@ -410,6 +440,44 @@ const imagePaths = {
   }
 };
 
+const participationPaths = {
+  "/participations": {
+    post: {
+      summary: "Create participation",
+      tags: ["Participations"],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: CreateParticipationSchema
+          }
+        }
+      },
+      responses: {
+        "201": jsonResponse(ParticipationSchema, "Created"),
+        "400": { description: "Bad request" },
+        "500": { description: "Server error" }
+      }
+    }
+  },
+  "/participations/{id}": {
+    delete: {
+      summary: "Delete participation",
+      tags: ["Participations"],
+      requestParams: {
+        path: IdPathParams
+      },
+      responses: {
+        "200": jsonResponse(
+          z.object({ message: z.string() }).meta({ id: "ParticipationMessageOk" })
+        ),
+        "400": { description: "Bad request" },
+        "500": { description: "Server error" }
+      }
+    }
+  }
+};
+
 export const openapiDocument = createDocument({
   openapi: "3.0.3",
   info: {
@@ -422,6 +490,7 @@ export const openapiDocument = createDocument({
     { name: "Users" },
     { name: "Posts" },
     { name: "Images" },
+    { name: "Participations" },
     { name: "Test" }
   ],
 
@@ -429,7 +498,8 @@ export const openapiDocument = createDocument({
     ...corePaths,
     ...userPaths,
     ...postPaths,
-    ...imagePaths
+    ...imagePaths,
+    ...participationPaths
   },
 
   components: {
@@ -442,7 +512,9 @@ export const openapiDocument = createDocument({
       PublicUser: PublicUserOpenApiSchema,
       MeUser: MeUserOpenApiSchema,
       Image: ImageSchema,
-      UploadImageMetadata: UploadImageMetadataSchema
+      UploadImageMetadata: UploadImageMetadataSchema,
+      Participation: ParticipationSchema,
+      CreateParticipation: CreateParticipationSchema
     }
   }
 });
