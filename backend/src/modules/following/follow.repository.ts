@@ -1,6 +1,6 @@
 import { db } from "#db/db.js";
 import { followTable } from "#db/schema.js";
-import { eq, InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { and, eq, InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 export type Follow = InferSelectModel<typeof followTable>;
 export type NewFollow = InferInsertModel<typeof followTable>;
@@ -12,7 +12,14 @@ export class FollowRepository {
     return like;
   }
 
-  async delete(id: number): Promise<void> {
-    await db.delete(followTable).where(eq(followTable.id, id));
+  async delete(currentUserId: string, targetUserId: string): Promise<void> {
+    await db
+      .delete(followTable)
+      .where(
+        and(
+          eq(followTable.follower_id, currentUserId),
+          eq(followTable.following_id, targetUserId)
+        )
+      );
   }
 }

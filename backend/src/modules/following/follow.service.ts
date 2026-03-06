@@ -9,7 +9,7 @@ export class FollowService {
   userService = new UserService(new UserRepository());
 
   async create(dto: CreateFollowDto): Promise<Follow | null> {
-    const userCheck = await this.userService.get(dto.follower_id);
+    const userCheck = await this.userService.get(dto.following_id);
 
     if (!userCheck) {
       return null;
@@ -17,11 +17,11 @@ export class FollowService {
 
     return this.follows.create({
       follower_id: dto.follower_id,
-      created_at: dto.created_at
+      following_id: dto.following_id
     });
   }
 
-  async delete(id: number): Promise<void> {
-    return this.follows.delete(id);
+  async delete(currentUserId: string, targetUserId: string): Promise<void> {
+    return this.follows.delete(currentUserId, targetUserId);
   }
 }
