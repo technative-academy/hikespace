@@ -1,5 +1,5 @@
 import type { UserRepository } from "./user.repository.js";
-import type { User, CreateUserDto, UpdateUserDto } from "./user.zod.js";
+import type { PublicUser, UserRow } from "./user.zod.js";
 import { s3 } from "../../config/s3.js";
 import {
   DeleteObjectCommand,
@@ -7,68 +7,83 @@ import {
   PutObjectCommand
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { hashPassword } from "../../utils/password.js";
 
 export class UserService {
   constructor(private readonly users: UserRepository) {}
 
-  async create(dto: CreateUserDto) {
-    const passwordHash = await hashPassword(dto.password);
-
-    return this.users.create({
-      email: dto.email,
-      username: dto.username,
-      password_hash: passwordHash
-    });
-  }
-
-  async get(id: number): Promise<User | null> {
-    let getUser = await this.users.get(id);
+  async get(id: string): Promise<PublicUser | null> {
+    let getUser = await this.users.getPublicById(id);
 
     if (!getUser) {
       return null;
     }
 
-    if (getUser.image_url) {
+    if (getUser.image) {
       const getCommand = new GetObjectCommand({
         Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-        Key: getUser.image_url
+        Key: getUser.image
       });
 
       const backblazeUrl = await getSignedUrl(s3, getCommand, {
         expiresIn: 3600
       });
 
-      getUser.image_url = backblazeUrl;
+      getUser.image = backblazeUrl;
     }
 
     return getUser;
   }
 
-  async getAll(): Promise<User[]> {
-    return this.users.getAll();
+  async getMe(id: string) {
+    const user = await this.users.getById(id);
+    if (!user) return null;
+
+    if (user.image) {
+      const getCommand = new GetObjectCommand({
+        Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
+        Key: user.image
+      });
+
+      const backblazeUrl = await getSignedUrl(s3, getCommand, {
+        expiresIn: 3600
+      });
+
+      user.image = backblazeUrl;
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      imageKey: user.image,
+      image_url: user.image
+    };
   }
 
-  async update(
-    id: number,
-    data: UpdateUserDto,
-    file?: Express.Multer.File | undefined
-  ): Promise<User | null> {
-    const getUser = await this.users.get(id);
+  async getAll(): Promise<PublicUser[]> {
+    return this.users.getPublicAll();
+  }
 
-    if (!getUser) {
+  async updateImage(
+    id: string,
+    file?: Express.Multer.File | null
+  ): Promise<void | null> {
+    const user = await this.users.getById(id);
+
+    if (!user) {
       return null;
     }
 
+    if (user.image) {
+      await s3.send(
+        new DeleteObjectCommand({
+          Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
+          Key: user.image
+        })
+      );
+    }
+
     if (file) {
-      if (getUser.image_url) {
-        await s3.send(
-          new DeleteObjectCommand({
-            Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-            Key: getUser.image_url
-          })
-        );
-      }
       let imageKey = new Date().getTime().toString() + file.originalname;
       await s3.send(
         new PutObjectCommand({
@@ -79,33 +94,26 @@ export class UserService {
         })
       );
 
-      let imageUpdate = await this.users.update(id, {
-        ...data,
-        image_url: imageKey
-      });
-
-      return imageUpdate;
+      await this.users.setImageKey(id, imageKey);
     } else {
-      return this.users.update(id, data);
+      this.users.setImageKey(id, null);
     }
   }
 
-  async delete(id: number): Promise<void | null> {
-    let getUser: User | null = await this.users.get(id);
+  async prepareAccountDeletion(id: string): Promise<void | null> {
+    let user: UserRow | null = await this.users.getById(id);
 
-    if (!getUser) {
+    if (!user) {
       return null;
     }
 
-    if (getUser.image_url) {
+    if (user.image) {
       await s3.send(
         new DeleteObjectCommand({
           Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-          Key: getUser.image_url
+          Key: user.image
         })
       );
     }
-
-    return this.users.delete(id);
   }
 }

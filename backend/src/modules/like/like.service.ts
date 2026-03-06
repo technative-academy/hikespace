@@ -11,9 +11,9 @@ export class LikeService {
   postService = new PostService(new PostRepository());
   userService = new UserService(new UserRepository());
 
-  async create(dto: CreateLikeDto): Promise<Like | null> {
+  async create(dto: CreateLikeDto, userId: string): Promise<Like | null> {
     const postCheck = await this.postService.get(dto.post_id);
-    const userCheck = await this.userService.get(dto.user_id);
+    const userCheck = await this.userService.get(userId);
 
     if (!postCheck || !userCheck) {
       return null;
@@ -21,11 +21,11 @@ export class LikeService {
 
     return this.likes.create({
       post_id: dto.post_id,
-      user_id: dto.user_id
+      user_id: userId
     });
   }
 
-  async delete(id: number): Promise<void> {
-    return this.likes.delete(id);
+  async delete(id: number, userId: string): Promise<boolean> {
+    return this.likes.delete(id, userId);
   }
 }

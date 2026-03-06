@@ -5,7 +5,7 @@ import { followTable } from "../../db/schema.js";
 export const followSchema = createSelectSchema(followTable);
 
 export const createFollowSchema = createInsertSchema(followTable).omit({
-  id: true
+  created_at: true
 });
 
 export type Follow = z.infer<typeof followSchema>;

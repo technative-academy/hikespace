@@ -1,27 +1,25 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { userTable } from "../../db/schema.js";
+import { user } from "../../db/schema.js";
 
-export const UserSchema = createSelectSchema(userTable);
+export const userSelectSchema = createSelectSchema(user);
 
-export const PublicUserSchema = UserSchema.omit({
-  password_hash: true
+export const PublicUserSchema = userSelectSchema.pick({
+  id: true,
+  name: true,
+  image: true
 });
 
-export const CreateUserSchema = createInsertSchema(userTable)
-  .omit({ id: true, password_hash: true, image_url: true })
-  .extend({
-    password: z.string().min(8).max(20)
-  });
-
-export const UpdateUserSchema = UserSchema.omit({
+export const MeUserSchema = userSelectSchema.pick({
   id: true,
-  password_hash: true,
-  image_url: true
-})
-  .partial()
-  .strict();
+  name: true,
+  email: true,
+  image: true
+});
 
-export type User = z.infer<typeof UserSchema>;
-export type CreateUserDto = z.infer<typeof CreateUserSchema>;
-export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;
+export const setAvatarSchema = z.object({
+  imageKey: z.string().min(1).nullable()
+});
+
+export type UserRow = z.infer<typeof userSelectSchema>;
+export type PublicUser = z.infer<typeof PublicUserSchema>;

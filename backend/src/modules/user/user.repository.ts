@@ -1,44 +1,60 @@
 import { db } from "#db/db.js";
-import { userTable } from "#db/schema.js";
+import { user } from "#db/schema.js";
 import { eq, InferInsertModel, InferSelectModel } from "drizzle-orm";
-
-export type User = InferSelectModel<typeof userTable>;
-export type NewUser = InferInsertModel<typeof userTable>;
+import {
+  PublicUser,
+  PublicUserSchema,
+  UserRow,
+  userSelectSchema
+} from "./user.zod.js";
 
 export class UserRepository {
-  async create(data: NewUser): Promise<User> {
-    const [user] = await db.insert(userTable).values(data).returning();
-
-    return user;
+  async getById(id: string): Promise<UserRow | null> {
+    const rows = await db.select().from(user).where(eq(user.id, id)).limit(1);
+    const row = rows[0] ?? null;
+    return row ? userSelectSchema.parse(row) : null;
   }
 
-  async get(id: number): Promise<User | null> {
-    const user = await db.query.userTable.findFirst({
-      where: eq(userTable.id, id)
-    });
+  async getPublicById(id: string): Promise<PublicUser | null> {
+    const rows = await db
+      .select({
+        id: user.id,
+        name: user.name,
+        image: user.image
+      })
+      .from(user)
+      .where(eq(user.id, id))
+      .limit(1);
 
-    return user ?? null;
+    const row = rows[0] ?? null;
+    return row ? PublicUserSchema.parse(row) : null;
   }
 
-  async getAll(): Promise<User[]> {
-    const allUsers = await db.select().from(userTable);
+  async getPublicAll(): Promise<PublicUser[]> {
+    const rows = await db
+      .select({
+        id: user.id,
+        name: user.name,
+        image: user.image
+      })
+      .from(user);
 
-    return allUsers;
+    return PublicUserSchema.array().parse(rows);
   }
 
-  async update(
-    id: number,
-    data: Partial<Omit<User, "id" | "password_hash">>
-  ): Promise<User | null> {
-    const [user] = await db
-      .update(userTable)
-      .set(data)
-      .where(eq(userTable.id, id))
-      .returning();
-    return user ?? null;
-  }
+  async setImageKey(id: string, imageKey: string | null): Promise<PublicUser> {
+    const rows = await db
+      .update(user)
+      .set({ image: imageKey })
+      .where(eq(user.id, id))
+      .returning({
+        id: user.id,
+        name: user.name,
+        image: user.image
+      });
 
-  async delete(id: number): Promise<void> {
-    await db.delete(userTable).where(eq(userTable.id, id));
+    const row = rows[0] ?? null;
+    if (!row) throw new Error("User not found");
+    return PublicUserSchema.parse(row);
   }
 }

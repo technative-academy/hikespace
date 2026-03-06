@@ -1,3 +1,4 @@
+import { user } from "#db/schema.js";
 import {
   text,
   integer,
@@ -6,7 +7,6 @@ import {
   varchar,
   customType
 } from "drizzle-orm/pg-core";
-import { userTable } from "../user/user.schema.js";
 
 const lineString4326 = customType<{ data: unknown; driverData: unknown }>({
   dataType() {
@@ -16,9 +16,9 @@ const lineString4326 = customType<{ data: unknown; driverData: unknown }>({
 
 export const postTable = pgTable("post", {
   id: serial().primaryKey(),
-  owner_id: integer()
+  owner_id: text()
     .notNull()
-    .references(() => userTable.id),
+    .references(() => user.id),
   description: text().notNull(),
   route: lineString4326("path").notNull(),
   location_name: varchar({ length: 255 }).notNull(),
