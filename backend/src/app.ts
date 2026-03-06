@@ -1,7 +1,6 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import { openapiDocument } from "./openapi.js";
-import { drizzle } from "drizzle-orm/node-postgres";
 import userRouter from "#modules/user/user.router.js";
 import postRouter from "#modules/post/post.router.js";
 import participRouter from "#modules/participation/particip.router.js";
@@ -9,8 +8,21 @@ import imageRouter from "#modules/image/image.router.js";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "#utils/auth.js";
 import cors from "cors";
+import { pinoHttp } from "pino-http";
+import { logger } from "#config/logger.js";
 
 const app = express();
+
+app.use(
+  pinoHttp({
+    logger,
+    autoLogging: {
+      ignore: (req) => {
+        return req.url?.startsWith("/docs");
+      }
+    }
+  })
+);
 
 app.use(
   cors({

@@ -39,8 +39,7 @@ export class UserRepository {
       })
       .from(user);
 
-    const row = rows[0] ?? null;
-    return PublicUserSchema.array().parse(row);
+    return PublicUserSchema.array().parse(rows);
   }
 
   async setImageKey(id: string, imageKey: string | null): Promise<PublicUser> {

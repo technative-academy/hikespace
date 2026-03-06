@@ -1,11 +1,6 @@
 ﻿import { createDocument } from "zod-openapi";
 import { z } from "zod";
-
-// import {
-//   CreateUserSchema,
-//   PublicUserSchema,
-//   UpdateUserSchema
-// } from "#modules/user/user.zod.js";
+import { PublicUserSchema } from "#modules/user/user.zod.js";
 
 const StatusOkSchema = z
   .object({ status: z.string() })
@@ -122,15 +117,37 @@ const IdPathParamSchema = z.coerce
   .positive()
   .meta({ id: "IdPathParam", example: 1 });
 
-// const CreateUserOpenApiSchema = CreateUserSchema.meta({ id: "CreateUser" });
-// const PublicUserOpenApiSchema = PublicUserSchema.meta({ id: "PublicUser" });
-// const UpdateUserOpenApiSchema = UpdateUserSchema.meta({ id: "UpdateUser" });
+const UserIdPathParamSchema = z
+  .string()
+  .min(1)
+  .meta({ id: "UserIdPathParam", example: "user_123abc" });
+
+const PublicUserOpenApiSchema = PublicUserSchema.meta({ id: "PublicUser" });
+const MeUserOpenApiSchema = z
+  .object({
+    id: z.string(),
+    name: z.string().nullable(),
+    email: z.string().nullable(),
+    imageKey: z.string().nullable(),
+    image_url: z.string().nullable()
+  })
+  .meta({
+    id: "MeUser",
+    example: {
+      id: "user_123abc",
+      name: "Jane Doe",
+      email: "jane@example.com",
+      imageKey: "1738757200123-avatar.jpg",
+      image_url: "https://signed-url.example.com/avatar.jpg"
+    }
+  });
 
 const AnyJsonSchema = z
   .record(z.string(), z.any())
   .meta({ description: "Any JSON" });
 
 const IdPathParams = z.object({ id: IdPathParamSchema });
+const UserIdPathParams = z.object({ id: UserIdPathParamSchema });
 
 const jsonResponse = (schema: z.ZodTypeAny, description = "OK") => ({
   description,
@@ -162,84 +179,83 @@ const corePaths = {
   }
 };
 
-// const userPaths = {
-//   "/users": {
-//     get: {
-//       summary: "Get all users",
-//       tags: ["Users"],
-//       responses: {
-//         "200": jsonResponse(z.array(PublicUserOpenApiSchema)),
-//         "500": { description: "Server error" }
-//       }
-//     },
-//     post: {
-//       summary: "Create user",
-//       tags: ["Users"],
-//       requestBody: {
-//         required: true,
-//         content: {
-//           "application/json": {
-//             schema: CreateUserOpenApiSchema
-//           }
-//         }
-//       },
-//       responses: {
-//         "201": jsonResponse(PublicUserOpenApiSchema, "Created"),
-//         "400": { description: "Bad request" },
-//         "500": { description: "Server error" }
-//       }
-//     }
-//   },
-
-//   "/users/{id}": {
-//     get: {
-//       summary: "Get user by id",
-//       tags: ["Users"],
-//       requestParams: {
-//         path: IdPathParams
-//       },
-//       responses: {
-//         "200": jsonResponse(PublicUserOpenApiSchema),
-//         "400": { description: "Bad request" },
-//         "404": { description: "Not found" }
-//       }
-//     },
-//     put: {
-//       summary: "Update user",
-//       tags: ["Users"],
-//       requestParams: {
-//         path: IdPathParams
-//       },
-//       requestBody: {
-//         required: true,
-//         content: {
-//           "application/json": {
-//             schema: UpdateUserOpenApiSchema
-//           }
-//         }
-//       },
-//       responses: {
-//         "200": jsonResponse(PublicUserOpenApiSchema),
-//         "400": { description: "Bad request" },
-//         "404": { description: "Not found" },
-//         "500": { description: "Server error" }
-//       }
-//     },
-//     delete: {
-//       summary: "Delete user",
-//       tags: ["Users"],
-//       requestParams: {
-//         path: IdPathParams
-//       },
-//       responses: {
-//         "200": jsonResponse(StatusOkSchema),
-//         "400": { description: "Bad request" },
-//         "404": { description: "Not found" },
-//         "500": { description: "Server error" }
-//       }
-//     }
-//   }
-// };
+const userPaths = {
+  "/users": {
+    get: {
+      summary: "Get all users",
+      tags: ["Users"],
+      responses: {
+        "200": jsonResponse(z.array(PublicUserOpenApiSchema)),
+        "500": { description: "Server error" }
+      }
+    },
+    delete: {
+      summary: "Delete user account",
+      tags: ["Users"],
+      responses: {
+        "200": jsonResponse(StatusOkSchema),
+        "400": { description: "Bad request" },
+        "401": { description: "Unauthorized" },
+        "403": { description: "Forbidden" },
+        "500": { description: "Server error" }
+      }
+    },
+    put: {
+      summary: "Update user profile image",
+      tags: ["Users"],
+      requestBody: {
+        required: false,
+        content: {
+          "multipart/form-data": {
+            schema: {
+              type: "object",
+              properties: {
+                profile_picture: {
+                  type: "string",
+                  format: "binary"
+                }
+              }
+            } as any
+          }
+        }
+      },
+      responses: {
+        "200": jsonResponse(
+          z.object({ message: z.string() }).meta({ id: "UserMessageOk" })
+        ),
+        "400": { description: "Bad request" },
+        "401": { description: "Unauthorized" },
+        "403": { description: "Forbidden" },
+        "500": { description: "Server error" }
+      }
+    }
+  },
+  "/users/me": {
+    get: {
+      summary: "Get current user profile",
+      tags: ["Users"],
+      responses: {
+        "200": jsonResponse(MeUserOpenApiSchema),
+        "401": { description: "Unauthorized" },
+        "404": { description: "Not found" }
+      }
+    }
+  },
+  "/users/{id}": {
+    get: {
+      summary: "Get user by id",
+      tags: ["Users"],
+      requestParams: {
+        path: UserIdPathParams
+      },
+      responses: {
+        "200": jsonResponse(PublicUserOpenApiSchema),
+        "400": { description: "Bad request" },
+        "404": { description: "Not found" }
+      }
+    }
+  }
+};
 
 const postPaths = {
   "/posts": {
@@ -411,7 +427,7 @@ export const openapiDocument = createDocument({
 
   paths: {
     ...corePaths,
-    //...userPaths,
+    ...userPaths,
     ...postPaths,
     ...imagePaths
   },
@@ -423,6 +439,8 @@ export const openapiDocument = createDocument({
       Post: PostSchema,
       CreatePost: CreatePostSchema,
       UpdatePost: UpdatePostSchema,
+      PublicUser: PublicUserOpenApiSchema,
+      MeUser: MeUserOpenApiSchema,
       Image: ImageSchema,
       UploadImageMetadata: UploadImageMetadataSchema
     }

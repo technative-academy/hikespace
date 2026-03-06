@@ -36,18 +36,20 @@ export class UserService {
 
   async getMe(id: string) {
     const user = await this.users.getById(id);
-    if (!user?.image) return null;
+    if (!user) return null;
 
-    const getCommand = new GetObjectCommand({
-      Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-      Key: user.image
-    });
+    if (user.image) {
+      const getCommand = new GetObjectCommand({
+        Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
+        Key: user.image
+      });
 
-    const backblazeUrl = await getSignedUrl(s3, getCommand, {
-      expiresIn: 3600
-    });
+      const backblazeUrl = await getSignedUrl(s3, getCommand, {
+        expiresIn: 3600
+      });
 
-    user.image = backblazeUrl;
+      user.image = backblazeUrl;
+    }
 
     return {
       id: user.id,
