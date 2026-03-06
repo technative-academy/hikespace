@@ -1,6 +1,6 @@
 import { db } from "#db/db.js";
 import { participTable } from "#db/schema.js";
-import { eq, InferInsertModel, InferSelectModel, sql } from "drizzle-orm";
+import { eq, InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 export type Particip = InferSelectModel<typeof participTable>;
 export type NewParticip = InferInsertModel<typeof participTable>;

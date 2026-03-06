@@ -10,6 +10,8 @@ import { auth } from "#utils/auth.js";
 import cors from "cors";
 import { pinoHttp } from "pino-http";
 import { logger } from "#config/logger.js";
+import likeRouter from "#modules/like/like.router.js";
+import followRouter from "#modules/following/follow.router.js";
 
 const app = express();
 
@@ -45,6 +47,8 @@ app.use("/users", userRouter);
 app.use("/posts", postRouter);
 app.use("/participations", participRouter);
 app.use("/images", imageRouter);
+app.use("/likes", likeRouter);
+app.use("/follows", followRouter);
 
 app.get("/", (_req, res) => {
   res.send("Hello from Express");

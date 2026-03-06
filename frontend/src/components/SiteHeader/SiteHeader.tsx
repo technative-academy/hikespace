@@ -14,7 +14,7 @@ import styles from "./SiteHeader.module.css";
 export default function SiteHeader() {
   const navLinks = [
     { label: "Home", url: "/" },
-    { label: "Example", url: "/auth" }, // testing purposes of auth needs to be removed after
+    { label: "Example", url: "/createpost" }, // testing purposes of createpost needs to be removed after
   ];
 
   return (

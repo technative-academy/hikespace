@@ -8,6 +8,20 @@
       "when": 1772720901867,
       "tag": "0000_low_argent",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1772721996815,
+      "tag": "0007_milky_the_fury",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1772725930458,
+      "tag": "0008_plain_groot",
+      "breakpoints": true
     }
   ]
 }
