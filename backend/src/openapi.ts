@@ -206,6 +206,7 @@ const AnyJsonSchema = z
 
 const IdPathParams = z.object({ id: IdPathParamSchema });
 const UserIdPathParams = z.object({ id: UserIdPathParamSchema });
+const AuthSecurity: Array<Record<string, string[]>> = [{ cookieAuth: [] }];
 
 const jsonResponse = (schema: z.ZodTypeAny, description = "OK") => ({
   description,
@@ -250,6 +251,7 @@ const userPaths = {
     delete: {
       summary: "Delete user account",
       tags: ["Users"],
+      security: AuthSecurity,
       responses: {
         "200": jsonResponse(StatusOkSchema),
         "400": { description: "Bad request" },
@@ -263,6 +265,7 @@ const userPaths = {
     put: {
       summary: "Update user profile image",
       tags: ["Users"],
+      security: AuthSecurity,
       requestBody: {
         required: false,
         content: {
@@ -294,6 +297,7 @@ const userPaths = {
     get: {
       summary: "Get current user profile",
       tags: ["Users"],
+      security: AuthSecurity,
       responses: {
         "200": jsonResponse(MeUserOpenApiSchema),
         "401": { description: "Unauthorized" },
@@ -330,6 +334,7 @@ const postPaths = {
     post: {
       summary: "Create post",
       tags: ["Posts"],
+      security: AuthSecurity,
       requestBody: {
         required: true,
         content: {
@@ -363,6 +368,7 @@ const postPaths = {
     put: {
       summary: "Update post",
       tags: ["Posts"],
+      security: AuthSecurity,
       requestParams: {
         path: IdPathParams
       },
@@ -385,6 +391,7 @@ const postPaths = {
     delete: {
       summary: "Delete post",
       tags: ["Posts"],
+      security: AuthSecurity,
       requestParams: {
         path: IdPathParams
       },
@@ -499,7 +506,9 @@ const participationPaths = {
       },
       responses: {
         "200": jsonResponse(
-          z.object({ message: z.string() }).meta({ id: "ParticipationMessageOk" })
+          z
+            .object({ message: z.string() })
+            .meta({ id: "ParticipationMessageOk" })
         ),
         "400": { description: "Bad request" },
         "500": { description: "Server error" }
@@ -513,6 +522,7 @@ const likePaths = {
     post: {
       summary: "Create like",
       tags: ["Likes"],
+      security: AuthSecurity,
       requestParams: {
         path: IdPathParams
       },
@@ -527,6 +537,7 @@ const likePaths = {
     delete: {
       summary: "Delete like",
       tags: ["Likes"],
+      security: AuthSecurity,
       requestParams: {
         path: IdPathParams
       },
@@ -548,6 +559,7 @@ const followPaths = {
     post: {
       summary: "Follow user",
       tags: ["Follows"],
+      security: AuthSecurity,
       requestParams: {
         path: UserIdPathParams
       },
@@ -562,6 +574,7 @@ const followPaths = {
     delete: {
       summary: "Unfollow user",
       tags: ["Follows"],
+      security: AuthSecurity,
       requestParams: {
         path: UserIdPathParams
       },
@@ -578,7 +591,7 @@ const followPaths = {
 };
 
 export const openapiDocument = createDocument({
-  openapi: "3.0.3",
+  openapi: "3.1.1",
   info: {
     title: "HikeSpace API",
     version: "1.0.0"
@@ -606,6 +619,14 @@ export const openapiDocument = createDocument({
   },
 
   components: {
+    securitySchemes: {
+      cookieAuth: {
+        type: "apiKey",
+        in: "cookie",
+        name: "better-auth.session_token",
+        description: "Better Auth session cookie"
+      }
+    },
     schemas: {
       StatusOk: StatusOkSchema,
       LineStringGeoJSON: LineStringGeoJSONSchema,

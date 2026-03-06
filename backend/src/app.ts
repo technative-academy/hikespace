@@ -41,7 +41,15 @@ app.use(express.json());
 const port = process.env.PORT ?? "3000";
 
 app.get("/openapi.json", (_req, res) => res.json(openapiDocument));
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiDocument));
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(openapiDocument, {
+    swaggerOptions: {
+      withCredentials: true
+    }
+  })
+);
 
 app.use("/users", userRouter);
 app.use("/posts", postRouter);
