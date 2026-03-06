@@ -154,19 +154,6 @@ const LikeSchema = z
     }
   });
 
-const CreateLikeSchema = z
-  .object({
-    post_id: z.number().int(),
-    user_id: z.string()
-  })
-  .meta({
-    id: "CreateLike",
-    example: {
-      post_id: 10,
-      user_id: "user_123abc"
-    }
-  });
-
 const FollowSchema = z
   .object({
     follower_id: z.string(),
@@ -522,27 +509,21 @@ const participationPaths = {
 };
 
 const likePaths = {
-  "/likes": {
+  "/likes/{id}": {
     post: {
       summary: "Create like",
       tags: ["Likes"],
-      requestBody: {
-        required: true,
-        content: {
-          "application/json": {
-            schema: CreateLikeSchema
-          }
-        }
+      requestParams: {
+        path: IdPathParams
       },
       responses: {
         "201": jsonResponse(LikeSchema, "Created"),
         "400": { description: "Bad request" },
+        "401": { description: "Unauthorized" },
         "404": { description: "User or post not found" },
         "500": { description: "Server error" }
       }
-    }
-  },
-  "/likes/{id}": {
+    },
     delete: {
       summary: "Delete like",
       tags: ["Likes"],
@@ -554,6 +535,8 @@ const likePaths = {
           z.object({ message: z.string() }).meta({ id: "LikeMessageOk" })
         ),
         "400": { description: "Bad request" },
+        "401": { description: "Unauthorized" },
+        "404": { description: "Like not found" },
         "500": { description: "Server error" }
       }
     }
@@ -636,7 +619,6 @@ export const openapiDocument = createDocument({
       Participation: ParticipationSchema,
       CreateParticipation: CreateParticipationSchema,
       Like: LikeSchema,
-      CreateLike: CreateLikeSchema,
       Follow: FollowSchema
     }
   }

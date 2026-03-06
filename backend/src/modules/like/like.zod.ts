@@ -5,7 +5,8 @@ import { likeTable } from "../../db/schema.js";
 export const likeSchema = createSelectSchema(likeTable);
 
 export const createLikeSchema = createInsertSchema(likeTable).omit({
-  id: true
+  id: true,
+  user_id: true
 });
 
 export type Like = z.infer<typeof likeSchema>;
