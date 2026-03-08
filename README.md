@@ -10,22 +10,6 @@ Users can create route-based posts, view hiking paths on interactive maps, and e
 - Backend: https://hikespace-production.up.railway.app
 - API docs: https://hikespace-production.up.railway.app/docs
 
-## CV-Style Project Summary
-
-**Role:** Full-stack developer project  
-**Type:** Portfolio/social platform  
-**Domain:** Outdoor/hiking community
-
-### What This App Demonstrates
-
-- Built a TypeScript-first full-stack app with React + Express.
-- Designed modular backend architecture (router/controller/service/repository).
-- Implemented relational data modeling with PostgreSQL + Drizzle ORM.
-- Integrated authentication with Better Auth.
-- Implemented map-based route visualization using React Leaflet + OpenStreetMap.
-- Added image upload workflow support (Multer + S3-compatible storage config).
-- Exposed OpenAPI/Swagger documentation for backend endpoints.
-
 ## Core Features
 
 - User authentication (email/password via Better Auth).
