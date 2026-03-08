@@ -1,6 +1,6 @@
 # HikeSpace
 
-HikeSpace is a full-stack social app for sharing hiking routes, photos, and trail stories.
+HikeSpace is a full-stack social app, written in TypeScript/TSX and made with React, Node and Express, made for sharing hiking routes, photos, and trail stories.
 
 Users can create route-based posts, view hiking paths on interactive maps, and explore content from other hikers in a feed-style interface.
 
@@ -42,7 +42,7 @@ Users can create route-based posts, view hiking paths on interactive maps, and e
 - Drizzle ORM + Drizzle Kit (migrations/generation)
 - Better Auth + Drizzle adapter
 - Zod + zod-openapi + Swagger UI
-- Multer (multipart uploads)
+- Multer (multipart HTTP form uploads)
 - AWS SDK S3 client/presigner (S3-compatible storage integration)
 - Pino + pino-http (structured logging)
 
@@ -56,7 +56,7 @@ Users can create route-based posts, view hiking paths on interactive maps, and e
 ```text
 hikespace/
   frontend/   # React client app
-  backend/    # Express API + DB layer
+  backend/    # Node/Express API + DB layer
 ```
 
 ## Local Setup
@@ -136,11 +136,17 @@ npm run dev
 Main route groups:
 
 - `/api/auth/*` (auth handler)
-- `/users`
-- `/posts`
-- `/participations`
-- `/images`
-- `/likes`
-- `/follows`
+
+- `/users` (CRUD on user accounts)
+
+- `/posts` (CRUD on posts)
+
+- `/participations` (representations for multiple users per post)
+
+- `/images` (creating and deleting images on DB and CDN backend)
+
+- `/likes` (creating likes from a user to a post)
+
+- `/follows` (creating following records between users)
 
 OpenAPI spec endpoint: `/openapi.json`
