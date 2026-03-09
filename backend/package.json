@@ -40,6 +40,7 @@
     "deploy": "npm run build && npm run migrate",
     "generate": "tsx node_modules/drizzle-kit/bin.cjs generate",
     "migrate": "tsx node_modules/drizzle-kit/bin.cjs migrate",
+    "studio": "tsx --env-file .env node_modules/drizzle-kit/bin.cjs studio",
     "type-check": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
