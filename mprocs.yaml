@@ -1,0 +1,19 @@
+# You need `mprocs` to use this command runner.
+# It runs a lot of commands in parallel.
+# github.com/pvolok/mprocs
+
+procs:
+  db:
+    shell: "docker compose up db"
+
+  backend:
+    shell: "npm run dev"
+    cwd: ./backend
+
+  frontend:
+    shell: "npm run dev"
+    cwd: ./frontend
+
+  studio:
+    shell: "npm run studio"
+    cwd: ./backend
