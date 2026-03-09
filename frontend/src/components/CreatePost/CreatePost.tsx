@@ -43,6 +43,10 @@ import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 import { type Point } from "@/features/post";
 import { useUsers } from "@/features/user";
@@ -249,13 +253,23 @@ export default function CreatePost() {
   return (
     <div className={styles.wrapper}>
       <form ref={formRef} onSubmit={handleCreatePost}>
-        <label htmlFor="location_name">Location Name</label>
-        <input type="text" name="location_name" />
-        <label htmlFor="caption">Caption</label>
-        <input type="text" name="caption" />
-        <label htmlFor="description">Description</label>
-        <textarea name="description"></textarea>
-        <label htmlFor="participation">Tag friends</label>
+        <FieldSet>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="location_name">Location Name</FieldLabel>
+              <Input id="location_name" type="text" name="location_name" />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="caption">Caption</FieldLabel>
+              <Input id="caption" type="text" name="caption" />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="description">Description</FieldLabel>
+              <Textarea id="description" name="description" />
+            </Field>
+          </FieldGroup>
+        </FieldSet>
+        <Label htmlFor="participation">Tag friends</Label>
         <Combobox
           multiple
           autoHighlight
@@ -300,7 +314,7 @@ export default function CreatePost() {
             </ComboboxList>
           </ComboboxContent>
         </Combobox>
-        <label htmlFor="markers">Pin your journey</label>
+        <Label htmlFor="markers">Pin your journey</Label>
         <MapContainer
           center={[50.82882, -0.140741]}
           zoom={13}
@@ -325,7 +339,7 @@ export default function CreatePost() {
 
           {route.length > 1 && <Polyline positions={myRoute} />}
         </MapContainer>
-        <label htmlFor="images">Photo(s)</label>
+        <Label htmlFor="images">Photo(s)</Label>
         <FileUpload
           value={images}
           onValueChange={setImages}
