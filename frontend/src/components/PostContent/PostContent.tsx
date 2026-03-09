@@ -1,4 +1,5 @@
-import { icon, type LatLngExpression } from "leaflet";
+import { type LatLngExpression } from "leaflet";
+import { markerIcon } from "@/lib/map-icons";
 import { useEffect, useState, useMemo } from "react";
 import { MapContainer, Marker, Polyline, TileLayer } from "react-leaflet";
 import styles from "./PostContent.module.css";
@@ -93,16 +94,12 @@ export default function PostContent() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {/* Waypoint markers */}
-          {post.route.coordinates.map((point) => (
-            <Marker key={point.join(";")} position={[point[1], point[0]]} icon={icon({
-              iconUrl: "/marker-icon.png",
-              iconRetinaUrl: "/marker-icon-2x.png",
-              shadowUrl: "/marker-shadow.png",
-              iconSize: [25, 41],
-              iconAnchor: [12, 41],
-              popupAnchor: [1, -34],
-              shadowSize: [41, 41]
-            })} />
+          {post.route.coordinates.map((point, i) => (
+            <Marker
+              key={point.join(";")}
+              position={[point[1], point[0]]}
+              icon={markerIcon(i, post.route.coordinates.length)}
+            />
           ))}
 
           {/* FIXED: Use route state, not post.route */}

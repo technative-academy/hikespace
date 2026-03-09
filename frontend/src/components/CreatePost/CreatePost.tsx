@@ -44,6 +44,7 @@ import "leaflet/dist/leaflet.css";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 import { type Point } from "@/features/post";
+import { markerIcon } from "@/lib/map-icons";
 
 // set type for marker
 type MarkerType = {
@@ -267,10 +268,11 @@ export default function CreatePost() {
 
           <AddMarker />
 
-          {markers.map((marker) => (
+          {markers.map((marker, i) => (
             <Marker
               key={marker.id}
               position={marker.position}
+              icon={markerIcon(i, markers.length)}
               eventHandlers={{
                 click: () => deleteMarker(marker.id),
               }}
