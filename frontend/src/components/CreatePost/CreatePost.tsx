@@ -49,6 +49,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
 import { type Point } from "@/features/post";
+import { markerIcon } from "@/lib/map-icons";
 import { useUsers } from "@/features/user";
 import { authClient } from "@/lib/auth-client";
 
@@ -327,10 +328,11 @@ export default function CreatePost() {
 
           <AddMarker />
 
-          {markers.map((marker) => (
+          {markers.map((marker, i) => (
             <Marker
               key={marker.id}
               position={marker.position}
+              icon={markerIcon(i, markers.length)}
               eventHandlers={{
                 click: () => deleteMarker(marker.id),
               }}
