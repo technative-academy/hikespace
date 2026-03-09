@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx";
 import { type Post } from "@/features/post";
 import useSWR from "swr";
+import { useNavigate } from "react-router-dom";
 import styles from "./Home.module.css";
 import { Loading } from "../Loading/Loading";
 
 function Home() {
+  const navigate = useNavigate();
   const { data, error, isLoading } = useSWR<Post[]>("/api/posts");
 
   if (isLoading) return <Loading thing="home page" />;
@@ -17,7 +19,7 @@ function Home() {
   return (
     <div className={styles.wrapper}>
       <VStack align="start" style={{ margin: "2rem" }}>
-        <Button variant="outline">Create post</Button>
+        <Button variant="outline" onClick={() => navigate("/createpost")}>Create post</Button>
 
         <Tabs defaultValue="feed" style={{ alignSelf: "stretch" }}>
           <TabsList variant="line">
