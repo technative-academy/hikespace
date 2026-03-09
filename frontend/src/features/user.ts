@@ -18,3 +18,10 @@ export function useUser(id: string | undefined) {
 
   return { user: data as ApiUser | undefined, isLoading, error: error };
 }
+
+export interface PublicUser { id: string; name: string; image: string | null; }
+
+export function useUsers() {
+  const { data, error, isLoading } = useSWR<PublicUser[]>("/api/users");
+  return { users: data ?? [], isLoading, error };
+}

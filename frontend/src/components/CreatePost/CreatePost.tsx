@@ -7,6 +7,7 @@ import { useState, useRef, useMemo, useEffect } from "react";
 import { Upload, X } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import {
   FileUpload,
   FileUploadDropzone,
@@ -44,6 +45,8 @@ import "leaflet/dist/leaflet.css";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 import { type Point } from "@/features/post";
+import { useUsers } from "@/features/user";
+import { authClient } from "@/lib/auth-client";
 
 // set type for marker
 type MarkerType = {
@@ -52,7 +55,14 @@ type MarkerType = {
 };
 
 export default function CreatePost() {
-  const frameworks = ["Pete", "Pete again", "Not Pete"] as const; // for testing, will swap to real users after it works as intended
+  const navigate = useNavigate();
+  const { data: session, isPending } = authClient.useSession();
+  const { users } = useUsers();
+
+  if (!isPending && !session) {
+    navigate("/auth");
+    return null;
+  }
 
   const anchor = useComboboxAnchor();
 
@@ -60,9 +70,7 @@ export default function CreatePost() {
 
   const [images, setImages] = useState<File[]>([]);
 
-  const [selectedParticipation, setSelectedParticipation] = useState<string[]>([
-    frameworks[0],
-  ]);
+  const [selectedParticipation, setSelectedParticipation] = useState<string[]>([]);
 
   const [markers, setMarkers] = useState<MarkerType[]>([]);
 
@@ -90,16 +98,7 @@ export default function CreatePost() {
           )}?overview=full&geometries=geojson`,
         );
 
-        // console.log(post.route);
-
         const data = await response.json();
-        /* console.log("Raw coordinates:", data.routes[0].geometry.coordinates);
-        console.log(
-          "Coordinates count:",
-          data.routes[0].geometry.coordinates.length,
-        ); */
-
-        // console.log("API Response:", data);
 
         // Extract coordinates and convert them [lng, lat] -> [lat, lng] for Leaflet to map
         const coords = data.routes[0].geometry.coordinates as [
@@ -112,7 +111,6 @@ export default function CreatePost() {
         );
 
         setMyRoute(reversedCoords);
-        // console.log("Route set:", coords);
       } catch (error) {
         console.error("Error fetching route:", error);
       }
@@ -176,28 +174,76 @@ export default function CreatePost() {
     });
   }, []);
 
-  async function handleCreatePost(event: React.SubmitEvent<HTMLFormElement>) {
-    event.preventDefault(); // Prevent the default form submission
-    const formData = new FormData(event.target as HTMLFormElement); // Get data from the form
+  async function handleCreatePost(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-    // Append images from state (since they're not in the form inputs)
-    images.forEach((file) => formData.append("images", file));
+    if (markers.length < 2) {
+      toast.error("Please add at least 2 points on the map to create a route");
+      return;
+    }
 
-    // append markers from state
-    (formData.append("routes", JSON.stringify(route)),
-      // Reset the form and state
-      formRef.current?.reset());
+    const formData = new FormData(event.target as HTMLFormElement);
+    const description = formData.get("description") as string;
+    const location_name = formData.get("location_name") as string;
+    const caption = formData.get("caption") as string;
+
+    // Convert user's markers from Leaflet [lat, lng] to GeoJSON [lng, lat]
+    const geoRoute = {
+      type: "LineString" as const,
+      coordinates: markers.map(({ position }) => {
+        const [lat, lng] = position as [number, number];
+        return [lng, lat];
+      }),
+    };
+
+    // 1. Create post
+    const postRes = await fetch("/api/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description, location_name, caption, route: geoRoute }),
+      credentials: "include",
+    });
+    if (!postRes.ok) {
+      toast.error("Failed to create post");
+      return;
+    }
+    const createdPost = await postRes.json();
+
+    // 2. Upload images (if any)
+    if (images.length > 0) {
+      const fd = new FormData();
+      fd.append("post_id", String(createdPost.id));
+      fd.append("metadata", JSON.stringify(images.map((_, i) => ({ position: i }))));
+      images.forEach((f) => fd.append("images", f));
+      const imgRes = await fetch("/api/images", {
+        method: "POST",
+        body: fd,
+        credentials: "include",
+      });
+      if (!imgRes.ok) toast.error("Post created but image upload failed");
+    }
+
+    // 3. Tag participants
+    if (selectedParticipation.length > 0) {
+      await Promise.all(
+        selectedParticipation.map((userId) =>
+          fetch("/api/participations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id: userId, post_id: createdPost.id }),
+            credentials: "include",
+          }),
+        ),
+      );
+    }
+
+    // Reset form and state
+    formRef.current?.reset();
     setImages([]);
     setSelectedParticipation([]);
     setMarkers([]);
 
-    // Log all FormData entries for debugging
-    /* console.log("FormData entries:");
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
-    console.log("post created"); */
+    navigate(`/post/${createdPost.id}`);
   }
 
   return (
@@ -213,8 +259,7 @@ export default function CreatePost() {
         <Combobox
           multiple
           autoHighlight
-          items={frameworks}
-          defaultValue={[frameworks[0]]}
+          items={users.map((u: { id: string }) => u.id)}
           value={selectedParticipation}
           onValueChange={setSelectedParticipation}
         >
@@ -222,14 +267,17 @@ export default function CreatePost() {
             <ComboboxValue>
               {(values) => (
                 <React.Fragment>
-                  {values.map((value: string) => (
-                    <ComboboxChip key={value}>
-                      <Avatar className="h-4 w-4">
-                        <AvatarImage src="https://github.com/orangespaceman.png"></AvatarImage>
-                      </Avatar>
-                      {value}
-                    </ComboboxChip>
-                  ))}
+                  {(values as string[]).map((id) => {
+                    const user = users.find((u: { id: string }) => u.id === id);
+                    return (
+                      <ComboboxChip key={id}>
+                        <Avatar className="h-4 w-4">
+                          {user?.image && <AvatarImage src={user.image} />}
+                        </Avatar>
+                        {user?.name ?? id}
+                      </ComboboxChip>
+                    );
+                  })}
                   <ComboboxChipsInput />
                 </React.Fragment>
               )}
@@ -238,22 +286,20 @@ export default function CreatePost() {
           <ComboboxContent anchor={anchor} className="z-[9999]">
             <ComboboxEmpty>No items found.</ComboboxEmpty>
             <ComboboxList>
-              {(item) => (
-                <ComboboxItem key={item} value={item}>
-                  <Avatar>
-                    <AvatarImage src="https://github.com/orangespaceman.png"></AvatarImage>
-                  </Avatar>
-                  {item}
-                </ComboboxItem>
-              )}
+              {(id) => {
+                const user = users.find((u: { id: string }) => u.id === id);
+                return (
+                  <ComboboxItem key={id} value={id}>
+                    <Avatar>
+                      {user?.image && <AvatarImage src={user.image} />}
+                    </Avatar>
+                    {user?.name ?? id}
+                  </ComboboxItem>
+                );
+              }}
             </ComboboxList>
           </ComboboxContent>
         </Combobox>
-        <input
-          type="hidden"
-          name="participation"
-          value={JSON.stringify(selectedParticipation)}
-        />
         <label htmlFor="markers">Pin your journey</label>
         <MapContainer
           center={[50.82882, -0.140741]}
