@@ -3,13 +3,12 @@ import useSWR from 'swr';
 export type Point = [number, number];
 
 export interface ApiUser {
-  id: number;
-  email: string;
-  username: string;
-  image_url: string | null;
+  id: string;
+  name: string;
+  image: string | null;
 }
 
-export function useUser(id: number | undefined) {
+export function useUser(id: string | undefined) {
   const { data, error, isLoading } = useSWR<ApiUser>(
     id ? `/api/users/${id}` : null,
   );
