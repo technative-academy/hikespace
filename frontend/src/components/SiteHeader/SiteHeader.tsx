@@ -1,21 +1,26 @@
+import { authClient } from "@/lib/auth-client";
 import { Menu } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { HStack, VStack } from "../Stack/Stack";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from "../ui/navigation-menu";
+import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from "../ui/navigation-menu";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet";
 import styles from "./SiteHeader.module.css";
 
 export default function SiteHeader() {
+  const { data: session } = authClient.useSession();
+
   const navLinks = [
     { label: "Home", url: "/" },
-    { label: "Example", url: "/createpost" }, // testing purposes of createpost needs to be removed after
   ];
+
+  const initials = session?.user.name
+    ?.split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <header className={styles.wrapper}>
@@ -29,6 +34,19 @@ export default function SiteHeader() {
               </NavigationMenuLink>
             </NavigationMenuItem>
           ))}
+          <NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              {session
+                ? (
+                  <NavLink to={`/user/${session?.user.id}`}>
+                    <Avatar>
+                      <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
+                  </NavLink>
+                )
+                : <NavLink to="/auth">Log In</NavLink>}
+            </NavigationMenuLink>
+          </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
       {/* mobile */}
@@ -57,6 +75,40 @@ export default function SiteHeader() {
                 )}
               </NavLink>
             ))}
+            {session
+              ? (
+                <NavLink to={`/user/${session?.user.id}`}>
+                  {({ isActive }) => (
+                    <Button
+                      asChild
+                      className="w-full rounded-none"
+                      variant="ghost"
+                      data-active={isActive}
+                    >
+                      <span className="flex items-center gap-2">
+                        <Avatar size="sm">
+                          <AvatarFallback>{initials}</AvatarFallback>
+                        </Avatar>
+                        {session.user.name ?? session.user.email}
+                      </span>
+                    </Button>
+                  )}
+                </NavLink>
+              )
+              : (
+                <NavLink to="/auth">
+                  {({ isActive }) => (
+                    <Button
+                      asChild
+                      className="w-full rounded-none"
+                      variant="ghost"
+                      data-active={isActive}
+                    >
+                      <span>Log In</span>
+                    </Button>
+                  )}
+                </NavLink>
+              )}
           </VStack>
         </SheetContent>
       </Sheet>

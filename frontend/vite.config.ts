@@ -15,6 +15,15 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
+        '/api/auth': {
+          target: env.API_BASE_URL,
+          changeOrigin: true,
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => {
+              proxyReq.setHeader('origin', env.API_BASE_URL);
+            });
+          },
+        },
         '/api': {
           target: env.API_BASE_URL,
           changeOrigin: true,
