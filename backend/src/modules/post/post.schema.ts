@@ -1,12 +1,13 @@
-import { user } from "#db/schema.js";
+import { imageTable, participTable, user } from "#db/schema.js";
 import {
   text,
-  integer,
   serial,
   pgTable,
   varchar,
   customType
 } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm"; 
+import { likeTable } from "#db/schema.js"
 
 const lineString4326 = customType<{ data: unknown; driverData: unknown }>({
   dataType() {
@@ -24,3 +25,13 @@ export const postTable = pgTable("post", {
   location_name: varchar({ length: 255 }).notNull(),
   caption: varchar({ length: 100 }).notNull()
 });
+
+export const postRelations = relations(postTable, ({ one, many }) => ({
+  owner: one(user, {
+    fields: [postTable.owner_id],
+    references: [user.id]
+  }),
+  likes: many(likeTable),
+  images: many(imageTable),  
+  particips: many(participTable)
+}));
