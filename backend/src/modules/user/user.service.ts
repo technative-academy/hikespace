@@ -1,12 +1,5 @@
 import type { UserRepository } from "./user.repository.js";
 import type { PublicUser, UserRow } from "./user.zod.js";
-import { s3 } from "../../config/s3.js";
-import {
-  DeleteObjectCommand,
-  GetObjectCommand,
-  PutObjectCommand
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { ImageHandler } from "#utils/image-handler.js";
 
 export class UserService {
@@ -22,16 +15,7 @@ export class UserService {
     }
 
     if (getUser.image) {
-      const getCommand = new GetObjectCommand({
-        Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-        Key: getUser.image
-      });
-
-      const backblazeUrl = await getSignedUrl(s3, getCommand, {
-        expiresIn: 3600
-      });
-
-      getUser.image = backblazeUrl;
+      getUser.image = await this.imageHandler.get(getUser.image);
     }
 
     return getUser;
