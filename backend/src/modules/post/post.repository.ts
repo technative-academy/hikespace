@@ -1,6 +1,6 @@
 import { db } from "#db/db.js";
-import { postTable } from "#db/schema.js";
-import { eq, InferInsertModel, InferSelectModel, sql } from "drizzle-orm";
+import { likeTable, postTable } from "#db/schema.js";
+import { count, eq, InferInsertModel, InferSelectModel, sql } from "drizzle-orm";
 
 type LineStringGeoJSON = {
   type: "LineString";
@@ -41,7 +41,7 @@ export class PostRepository {
     return row as Post;
   }
 
-  async get(id: number): Promise<Post | null> {
+  async get(id: number): Promise<Post & {likes: number} | null> {
     const [post] = await db
       .select({
         id: postTable.id,
@@ -59,7 +59,9 @@ export class PostRepository {
       return null;
     }
 
-    return post as Post;
+    let [likes] = await db.select({ count: count() }).from(likeTable).where(eq(likeTable.post_id, id));
+
+    return {...post, likes: likes.count};
   }
 
   async getAll(): Promise<Post[]> {
