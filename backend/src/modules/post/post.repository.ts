@@ -1,6 +1,7 @@
 import { db } from "#db/db.js";
 import { likeTable, postTable } from "#db/schema.js";
 import { count, eq, InferInsertModel, InferSelectModel, sql } from "drizzle-orm";
+import { PopulatedPost } from "./post.zod.js";
 
 type LineStringGeoJSON = {
   type: "LineString";
@@ -41,7 +42,7 @@ export class PostRepository {
     return row as Post;
   }
 
-  async get(id: number): Promise<Post & {likes: number} | null> {
+  async get(id: number): Promise<PopulatedPost | null> {
     const [post] = await db
       .select({
         id: postTable.id,
