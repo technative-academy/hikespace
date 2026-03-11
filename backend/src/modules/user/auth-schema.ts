@@ -1,4 +1,5 @@
 import { relations } from "drizzle-orm";
+import { postTable, participTable, followTable, likeTable } from "#db/schema.js";
 import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -90,4 +91,20 @@ export const accountRelations = relations(account, ({ one }) => ({
     fields: [account.userId],
     references: [user.id]
   })
+}));
+
+export const userPostRelations = relations(user, ({ many }) => ({
+  posts: many(postTable)
+}));
+
+export const userParticipRelations = relations(user, ({ many }) => ({
+  particips: many(participTable)
+}));
+
+export const userFollowRelations = relations(user, ({ many }) => ({
+  follows: many(followTable)
+}));
+
+export const userLikeRelations = relations(user, ({ many }) => ({
+  likes: many(likeTable)
 }));
