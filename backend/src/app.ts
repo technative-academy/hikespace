@@ -28,7 +28,10 @@ app.use(
 
 app.use(
   cors({
-    origin: process.env.SWAGGER_URL,
+    origin: [
+      process.env.SWAGGER_URL!,
+      /^https:\/\/hikespace[^.]*-j0lols-projects\.vercel\.app$/,
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
   })
