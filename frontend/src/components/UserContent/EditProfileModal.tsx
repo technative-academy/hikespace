@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { SettingsIcon, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
+import { mutate } from "swr";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,10 +29,14 @@ import {
 
 interface EditProfileModalProps {
   user: { name?: string };
+  onSuccess?: () => void;
 }
 
-export default function EditProfileModal({ user }: EditProfileModalProps) {
+export default function EditProfileModal({ user, onSuccess }: EditProfileModalProps) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(user.name ?? "");
   const [avatar, setAvatar] = useState<File[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const onFileValidate = useCallback((file: File): string | null => {
     if (!file.type.startsWith("image/")) return "Only image files are allowed";
@@ -44,8 +50,35 @@ export default function EditProfileModal({ user }: EditProfileModalProps) {
     });
   }, []);
 
+  async function handleSave() {
+    setSaving(true);
+    try {
+      if (name !== user.name) {
+        await authClient.updateUser({ name });
+      }
+      if (avatar.length > 0) {
+        const fd = new FormData();
+        fd.append("profile_picture", avatar[0]);
+        const res = await fetch("/api/users/avatar", {
+          method: "PUT",
+          body: fd,
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Avatar upload failed");
+      }
+      toast.success("Profile updated");
+      await mutate("/api/users/me");
+      onSuccess?.();
+      setOpen(false);
+    } catch {
+      toast.error("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="Edit profile">
           <SettingsIcon className="size-4" />
@@ -63,7 +96,8 @@ export default function EditProfileModal({ user }: EditProfileModalProps) {
             <FieldLabel htmlFor="display-name">Display name</FieldLabel>
             <Input
               id="display-name"
-              defaultValue={user.name ?? ""}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
             />
           </Field>
@@ -110,9 +144,11 @@ export default function EditProfileModal({ user }: EditProfileModalProps) {
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" disabled={saving}>Cancel</Button>
           </DialogClose>
-          <Button onClick={() => console.log("save profile")}>Save changes</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? "Saving..." : "Save changes"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
