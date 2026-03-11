@@ -1,26 +1,31 @@
-import { type LatLngExpression } from "leaflet";
 import { markerIcon } from "@/lib/map-icons";
-import { useEffect, useState, useMemo } from "react";
+import { type LatLngExpression } from "leaflet";
+import { useEffect, useMemo, useState } from "react";
 import { MapContainer, Marker, Polyline, TileLayer } from "react-leaflet";
 import styles from "./PostContent.module.css";
 import "leaflet/dist/leaflet.css";
 import { type Point, usePost } from "@/features/post";
 import { useParams } from "react-router-dom";
 
-import { Card, CardContent } from "../ui/card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "../ui/carousel";
+import { HeartIcon, Trash2Icon } from "lucide-react";
 import { Loading } from "../Loading/Loading";
-import { Empty, EmptyContent, EmptyTitle } from "../ui/empty";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { Empty, EmptyContent, EmptyTitle } from "../ui/empty";
 
-const toQueryString = (list: Point[]) =>
-  list.map(([lat, lng]) => `${lat},${lng}`).join(";");
+const toQueryString = (list: Point[]) => list.map(([lat, lng]) => `${lat},${lng}`).join(";");
 
 export default function PostContent() {
   const { id } = useParams<{ id: string }>();
@@ -76,14 +81,13 @@ export default function PostContent() {
           </Button>
         </EmptyContent>
       </Empty>
-    )
+    );
   }
   if (error) throw error;
 
   return (
     <div className={styles.wrapper}>
-
-      <div className={styles.map}>
+      <div className={styles.map} style={{ zIndex: 0, position: "relative" }}>
         <MapContainer
           center={[post.route.coordinates.at(0)![1], post.route.coordinates.at(0)![0]]}
           zoom={15}
@@ -103,15 +107,40 @@ export default function PostContent() {
           ))}
 
           {/* FIXED: Use route state, not post.route */}
-          {route.length > 0 && (
-            <Polyline positions={route} color="blue" weight={4} />
-          )}
+          {route.length > 0 && <Polyline positions={route} color="blue" weight={4} />}
         </MapContainer>
       </div>
       <div className="p-4">
-        <p className="text-lg font-bold">📍 {post.location_name}</p>
-        <p className="italic">{post.description}</p>
-        <p>❤️ 78920</p>
+        <div className="flex items-center justify-between">
+          <p className="text-lg font-bold">📍 {post.location_name}</p>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm">78920</span>
+              <Button variant="outline" size="icon" className="rounded-full">
+                <HeartIcon className="size-4" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-primary">78921</span>
+              <Button variant="outline" size="icon" className="rounded-full border-primary bg-primary/10">
+                <HeartIcon className="size-[1.1rem] fill-primary text-primary" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        <a
+          href={`/user/${post.owner_id}`}
+          className="flex items-center gap-2 mb-2 w-fit hover:opacity-80 transition-opacity"
+        >
+          <Avatar className="size-7">
+            <AvatarFallback>JD</AvatarFallback>
+          </Avatar>
+          <span className="text-sm font-medium">John Doe</span>
+        </a>
+        <div className="bg-muted rounded-xl p-4 mt-3">
+          <p className="text-sm font-bold">Description</p>
+          <p className="italic text-sm">{post.description}</p>
+        </div>
       </div>
 
       <center>
@@ -120,23 +149,56 @@ export default function PostContent() {
             {Array.from({ length: 5 }).map((_, index) => (
               <CarouselItem key={index}>
                 <div className="p-1">
-                  <Card>
-                    <CardContent className="flex aspect-landscape items-center justify-center p-6">
-                      <span className="text-4xl font-semibold">
-                        {index + 1}
-                      </span>
+                  <Card className="py-0">
+                    <CardContent className="px-0">
+                      <img
+                        className="rounded-xl aspect-landscape"
+                        src="https://images.unsplash.com/photo-1462143338528-eca9936a4d09?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                        alt="forest"
+                        width="964"
+                        height="643"
+                      />
                     </CardContent>
                   </Card>
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselNext />
-          <CarouselPrevious />
+          <CarouselNext className="hidden md:flex" />
+          <CarouselPrevious className="hidden md:flex" />
         </Carousel>
         <p>{post.caption}</p>
       </center>
-
+      <div className="p-4">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive gap-2"
+            >
+              <Trash2Icon className="size-4" />
+              Delete post
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete post?</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. The post and all its images will be permanently deleted.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button variant="destructive" onClick={() => console.log("delete post")}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
