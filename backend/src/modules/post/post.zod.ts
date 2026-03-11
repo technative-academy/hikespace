@@ -12,15 +12,22 @@ const LineStringGeoJSON = z.object({
 export const PostSchema = createSelectSchema(postTable, {
   route: LineStringGeoJSON
 });
+
+export const PostPopulatedSchema = PostSchema.extend({
+  likes: z.number().int().nonnegative()
+})
+
 export const CreatePostSchema = createInsertSchema(postTable, {
   route: LineStringGeoJSON
 }).omit({
   id: true,
   owner_id: true
 });
+
 export const UpdatePostSchema = CreatePostSchema.partial().strict();
 
 export type Post = z.infer<typeof PostSchema>;
+export type PopulatedPost = z.infer<typeof PostPopulatedSchema>;
 export type CreatePostBody = z.infer<typeof CreatePostSchema>;
 export type CreatePostDto = CreatePostBody & { owner_id: string };
 export type UpdatePostDto = z.infer<typeof UpdatePostSchema>;
