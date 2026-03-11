@@ -10,6 +10,7 @@ export const auth = betterAuth({
   trustedOrigins: [
     process.env.SWAGGER_URL!,
     "https://hikespace-*-j0lols-projects.vercel.app",
+    process.env.FRONTEND_URL!
   ],
   emailAndPassword: {
     enabled: true

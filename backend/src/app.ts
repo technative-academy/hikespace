@@ -31,6 +31,7 @@ app.use(
     origin: [
       process.env.SWAGGER_URL!,
       /^https:\/\/hikespace[^.]*-j0lols-projects\.vercel\.app$/,
+      process.env.FRONTEND_URL!
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
