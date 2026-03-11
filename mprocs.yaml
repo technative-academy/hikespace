@@ -5,6 +5,8 @@
 procs:
   db:
     shell: "docker compose up db"
+    stop:
+      send-keys: ["<C-c>"]
 
   backend:
     shell: "npm run dev"
