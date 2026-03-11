@@ -2,11 +2,10 @@ import { user } from "#db/schema.js";
 import {
   pgTable,
   primaryKey,
-  serial,
   text,
-  timestamp,
-  unique
+  timestamp
 } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 export const followTable = pgTable(
   "following",
@@ -27,3 +26,16 @@ export const followTable = pgTable(
     })
   ]
 );
+
+export const followerUserRelations = relations(followTable, ({ one }) => ({
+  follower: one(user, {
+    fields: [followTable.follower_id],
+    references: [user.id],
+    relationName: "follower"
+  }),
+  followed: one(user, {
+    fields: [followTable.following_id],
+    references: [user.id],
+    relationName: "following"
+  })
+}));
