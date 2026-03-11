@@ -76,7 +76,11 @@ export const verification = pgTable(
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
-  accounts: many(account)
+  accounts: many(account),
+  posts: many(postTable),
+  particips: many(participTable),
+  follows: many(followTable),
+  likes: many(likeTable)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -91,20 +95,4 @@ export const accountRelations = relations(account, ({ one }) => ({
     fields: [account.userId],
     references: [user.id]
   })
-}));
-
-export const userPostRelations = relations(user, ({ many }) => ({
-  posts: many(postTable)
-}));
-
-export const userParticipRelations = relations(user, ({ many }) => ({
-  particips: many(participTable)
-}));
-
-export const userFollowRelations = relations(user, ({ many }) => ({
-  follows: many(followTable)
-}));
-
-export const userLikeRelations = relations(user, ({ many }) => ({
-  likes: many(likeTable)
 }));
