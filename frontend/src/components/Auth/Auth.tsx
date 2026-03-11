@@ -25,7 +25,10 @@ export default function Auth() {
       email: fd.get("email") as string,
       password: fd.get("password") as string,
     });
-    if (error) { setSignInError(error.message ?? "Sign in failed"); return; }
+    if (error) {
+      setSignInError(error.message ?? "Sign in failed");
+      return;
+    }
     navigate("/");
   }
 
@@ -38,7 +41,10 @@ export default function Auth() {
       name: fd.get("username") as string,
       password: fd.get("password") as string,
     });
-    if (error) { setSignUpError(error.message ?? "Sign up failed"); return; }
+    if (error) {
+      setSignUpError(error.message ?? "Sign up failed");
+      return;
+    }
     navigate("/");
   }
 
@@ -55,7 +61,7 @@ export default function Auth() {
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input type="email" name="email" />
+                  <Input type="email" name="email" placeholder="jane@doe.com" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
@@ -77,11 +83,15 @@ export default function Auth() {
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input type="email" name="email" />
+                  <Input type="email" name="email" placeholder="jane@doe.com" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="username">Username</FieldLabel>
-                  <Input type="text" name="username" />
+                  <Input
+                    type="text"
+                    name="username"
+                    placeholder="janedoe1234"
+                  />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
