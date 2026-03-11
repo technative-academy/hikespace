@@ -139,6 +139,19 @@ const CreateParticipationSchema = z
     }
   });
 
+const CreateManyParticipationSchema = z
+  .object({
+    userIds: z.array(z.string()).min(1),
+    postId: z.number().int()
+  })
+  .meta({
+    id: "CreateManyParticipation",
+    example: {
+      userIds: ["user_123abc", "user_456def"],
+      postId: 10
+    }
+  });
+
 const LikeSchema = z
   .object({
     id: z.number().int(),
@@ -482,6 +495,7 @@ const participationPaths = {
     post: {
       summary: "Create participation",
       tags: ["Participations"],
+      security: AuthSecurity,
       requestBody: {
         required: true,
         content: {
@@ -493,6 +507,30 @@ const participationPaths = {
       responses: {
         "201": jsonResponse(ParticipationSchema, "Created"),
         "400": { description: "Bad request" },
+        "401": { description: "Unauthorized" },
+        "403": { description: "Forbidden" },
+        "500": { description: "Server error" }
+      }
+    }
+  },
+  "/participations/many": {
+    post: {
+      summary: "Create many participations",
+      tags: ["Participations"],
+      security: AuthSecurity,
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: CreateManyParticipationSchema
+          }
+        }
+      },
+      responses: {
+        "201": jsonResponse(z.array(ParticipationSchema), "Created"),
+        "400": { description: "Bad request" },
+        "401": { description: "Unauthorized" },
+        "403": { description: "Forbidden" },
         "500": { description: "Server error" }
       }
     }
@@ -501,6 +539,7 @@ const participationPaths = {
     delete: {
       summary: "Delete participation",
       tags: ["Participations"],
+      security: AuthSecurity,
       requestParams: {
         path: IdPathParams
       },
@@ -511,6 +550,7 @@ const participationPaths = {
             .meta({ id: "ParticipationMessageOk" })
         ),
         "400": { description: "Bad request" },
+        "401": { description: "Unauthorized" },
         "500": { description: "Server error" }
       }
     }
@@ -639,6 +679,7 @@ export const openapiDocument = createDocument({
       UploadImageMetadata: UploadImageMetadataSchema,
       Participation: ParticipationSchema,
       CreateParticipation: CreateParticipationSchema,
+      CreateManyParticipation: CreateManyParticipationSchema,
       Like: LikeSchema,
       Follow: FollowSchema
     }

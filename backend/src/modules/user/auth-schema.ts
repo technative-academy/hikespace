@@ -1,4 +1,5 @@
 import { relations } from "drizzle-orm";
+import { postTable, participTable, followTable, likeTable } from "#db/schema.js";
 import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -75,7 +76,12 @@ export const verification = pgTable(
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
-  accounts: many(account)
+  accounts: many(account),
+  posts: many(postTable),
+  particips: many(participTable),
+  following: many(followTable, {relationName: "following"}),
+  follower: many(followTable, { relationName: "follower"}),
+  likes: many(likeTable)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

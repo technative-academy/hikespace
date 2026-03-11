@@ -1,5 +1,6 @@
 import { integer, serial, pgTable, text } from "drizzle-orm/pg-core";
-import { postTable } from "../post/post.schema.js";
+import { relations } from "drizzle-orm";
+import { postTable } from "#db/schema.js";
 import { user } from "#db/schema.js";
 
 export const likeTable = pgTable("like", {
@@ -11,3 +12,14 @@ export const likeTable = pgTable("like", {
     .notNull()
     .references(() => user.id)
 });
+
+export const likeRelations = relations(likeTable, ({one}) => ({
+  user: one(user, {
+    fields: [likeTable.user_id],
+    references: [user.id]
+  }),
+ posts: one(postTable, {
+    fields: [likeTable.post_id],
+    references: [postTable.id]
+  })
+}));

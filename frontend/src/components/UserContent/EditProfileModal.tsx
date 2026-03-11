@@ -1,0 +1,120 @@
+import { useState, useCallback } from "react";
+import { SettingsIcon, Upload, X } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadItem,
+  FileUploadItemDelete,
+  FileUploadItemMetadata,
+  FileUploadItemPreview,
+  FileUploadList,
+  FileUploadTrigger,
+} from "@/components/ui/file-upload";
+
+interface EditProfileModalProps {
+  user: { name?: string };
+}
+
+export default function EditProfileModal({ user }: EditProfileModalProps) {
+  const [avatar, setAvatar] = useState<File[]>([]);
+
+  const onFileValidate = useCallback((file: File): string | null => {
+    if (!file.type.startsWith("image/")) return "Only image files are allowed";
+    if (file.size > 2 * 1024 * 1024) return "File size must be less than 2MB";
+    return null;
+  }, []);
+
+  const onFileReject = useCallback((file: File, message: string) => {
+    toast(message, {
+      description: `"${file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name}" has been rejected`,
+    });
+  }, []);
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="Edit profile">
+          <SettingsIcon className="size-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit profile</DialogTitle>
+          <DialogDescription>
+            Update your display name and profile picture.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-4 py-2">
+          <Field>
+            <FieldLabel htmlFor="display-name">Display name</FieldLabel>
+            <Input
+              id="display-name"
+              defaultValue={user.name ?? ""}
+              placeholder="Your name"
+            />
+          </Field>
+          <Field>
+            <FieldLabel>Profile picture</FieldLabel>
+            <FileUpload
+              value={avatar}
+              onValueChange={setAvatar}
+              onFileValidate={onFileValidate}
+              onFileReject={onFileReject}
+              accept="image/*"
+              maxFiles={1}
+              className="w-full"
+            >
+              <FileUploadDropzone>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex items-center justify-center rounded-full border p-2.5">
+                    <Upload className="size-5 text-muted-foreground" />
+                  </div>
+                  <p className="font-medium text-sm">Drag & drop image here</p>
+                  <p className="text-muted-foreground text-xs">Max 2MB</p>
+                </div>
+                <FileUploadTrigger asChild>
+                  <Button variant="outline" size="sm" className="mt-2 w-fit">
+                    Browse
+                  </Button>
+                </FileUploadTrigger>
+              </FileUploadDropzone>
+              <FileUploadList>
+                {avatar.map((file) => (
+                  <FileUploadItem key={file.name} value={file}>
+                    <FileUploadItemPreview />
+                    <FileUploadItemMetadata />
+                    <FileUploadItemDelete asChild>
+                      <Button variant="ghost" size="icon" className="size-7">
+                        <X />
+                      </Button>
+                    </FileUploadItemDelete>
+                  </FileUploadItem>
+                ))}
+              </FileUploadList>
+            </FileUpload>
+          </Field>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button onClick={() => console.log("save profile")}>Save changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
