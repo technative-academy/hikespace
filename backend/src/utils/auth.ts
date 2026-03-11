@@ -7,6 +7,10 @@ import { logger } from "#config/logger.js";
 const isDev = process.env.NODE_ENV !== "production";
 
 export const auth = betterAuth({
+  trustedOrigins: [
+    process.env.SWAGGER_URL!,
+    "https://hikespace-*-j0lols-projects.vercel.app",
+  ],
   emailAndPassword: {
     enabled: true
   },
