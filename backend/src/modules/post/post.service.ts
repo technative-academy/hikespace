@@ -18,7 +18,7 @@ export class PostService {
     return this.posts.get(id);
   }
 
-  async getAll(): Promise<Post[]> {
+  async getAll(): Promise<PopulatedPost[]> {
     return this.posts.getAll();
   }
 

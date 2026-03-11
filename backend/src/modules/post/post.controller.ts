@@ -63,7 +63,7 @@ export class PostController {
   getAll = async (_req: Request, res: Response) => {
     const posts = await this.postService.getAll();
 
-    return res.status(200).json(PostSchema.array().parse(posts));
+    return res.status(200).json(PostPopulatedSchema.array().parse(posts));
   };
 
   // PUT /posts/:id

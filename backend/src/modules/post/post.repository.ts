@@ -1,16 +1,13 @@
 import { db } from "#db/db.js";
-import { likeTable, postTable } from "#db/schema.js";
+import { likeTable, postTable, imageTable } from "#db/schema.js";
 import { count, eq, InferInsertModel, InferSelectModel, sql } from "drizzle-orm";
-import { PopulatedPost } from "./post.zod.js";
+import { Post, PopulatedPost } from "./post.zod.js";
 
 type LineStringGeoJSON = {
   type: "LineString";
   coordinates: [number, number][];
 };
 
-export type Post = Omit<InferSelectModel<typeof postTable>, "route"> & {
-  route: LineStringGeoJSON;
-};
 export type NewPost = InferInsertModel<typeof postTable>;
 
 export class PostRepository {
@@ -62,20 +59,27 @@ export class PostRepository {
 
     let [likes] = await db.select({ count: count() }).from(likeTable).where(eq(likeTable.post_id, id));
 
-    return {...post, likes: likes.count};
+    let images = await db.select().from(imageTable).where(eq(imageTable.post_id, id));
+
+    return {...post, likes: likes.count, images};
   }
 
-  async getAll(): Promise<Post[]> {
-    const allPosts: Post[] = await db
+  async getAll(): Promise<PopulatedPost[]> {
+    const imageQuery = db.select().from(imageTable).orderBy(imageTable.position).limit(1).as("imageQuery");
+
+    const allPosts: PopulatedPost[] = await db
       .select({
         id: postTable.id,
         owner_id: postTable.owner_id,
         description: postTable.description,
         route: sql<LineStringGeoJSON>`ST_AsGeoJSON(${postTable.route})::json`,
         location_name: postTable.location_name,
-        caption: postTable.caption
+        caption: postTable.caption,
+        likes: db.$count(likeTable, eq(likeTable.post_id, postTable.id)),
+        images: imageTable
       })
-      .from(postTable);
+      .from(postTable)
+      .leftJoin(imageQuery, eq(postTable.id, imageQuery.post_id)).groupBy(postTable.id);
 
     return allPosts;
   }
