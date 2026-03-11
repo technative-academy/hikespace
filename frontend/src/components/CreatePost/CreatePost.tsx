@@ -1,13 +1,9 @@
-import styles from "./CreatePost.module.css";
 import { Button } from "@/components/ui/button";
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import styles from "./CreatePost.module.css";
 
-("use client");
+"use client";
 
-import { Upload, X } from "lucide-react";
-import * as React from "react";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 import {
   FileUpload,
   FileUploadDropzone,
@@ -18,6 +14,10 @@ import {
   FileUploadList,
   FileUploadTrigger,
 } from "@/components/ui/file-upload";
+import { Upload, X } from "lucide-react";
+import * as React from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 import {
   Combobox,
@@ -32,26 +32,20 @@ import {
   useComboboxAnchor,
 } from "@/components/ui/combobox";
 
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Polyline,
-  useMapEvents,
-} from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
+import { MapContainer, Marker, Polyline, TileLayer, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 import { type Point } from "@/features/post";
-import { markerIcon } from "@/lib/map-icons";
 import { useUsers } from "@/features/user";
 import { authClient } from "@/lib/auth-client";
+import { markerIcon } from "@/lib/map-icons";
 
 // set type for marker
 type MarkerType = {
@@ -80,8 +74,7 @@ export default function CreatePost() {
   const [markers, setMarkers] = useState<MarkerType[]>([]);
 
   // testing for map trail routing
-  const toQueryString = (list: Point[]) =>
-    list.map(([lat, long]) => `${long},${lat}`).join(";");
+  const toQueryString = (list: Point[]) => list.map(([lat, long]) => `${long},${lat}`).join(";");
 
   const [myRoute, setMyRoute] = useState<LatLngExpression[]>([]);
 
@@ -98,9 +91,11 @@ export default function CreatePost() {
       try {
         // Openstreetmap API request: pointA -> pointB, get GeoJSON route for walking mode and pass to leaflet
         const response = await fetch(
-          `https://routing.openstreetmap.de/routed-foot/route/v1/walking/${toQueryString(
-            markers.map((m) => m.position as Point),
-          )}?overview=full&geometries=geojson`,
+          `https://routing.openstreetmap.de/routed-foot/route/v1/walking/${
+            toQueryString(
+              markers.map((m) => m.position as Point),
+            )
+          }?overview=full&geometries=geojson`,
         );
 
         const data = await response.json();
@@ -237,7 +232,7 @@ export default function CreatePost() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_id: userId, post_id: createdPost.id }),
             credentials: "include",
-          }),
+          })
         ),
       );
     }
@@ -280,7 +275,7 @@ export default function CreatePost() {
         >
           <ComboboxChips ref={anchor} className="w-full max-w-xs">
             <ComboboxValue>
-              {(values) => (
+              {(values: string[]) => (
                 <React.Fragment>
                   {(values as string[]).map((id) => {
                     const user = users.find((u: { id: string }) => u.id === id);
@@ -301,7 +296,7 @@ export default function CreatePost() {
           <ComboboxContent anchor={anchor} className="z-[9999]">
             <ComboboxEmpty>No items found.</ComboboxEmpty>
             <ComboboxList>
-              {(id) => {
+              {(id: string) => {
                 const user = users.find((u: { id: string }) => u.id === id);
                 return (
                   <ComboboxItem key={id} value={id}>
