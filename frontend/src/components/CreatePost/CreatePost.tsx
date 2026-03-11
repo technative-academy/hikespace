@@ -75,7 +75,9 @@ export default function CreatePost() {
 
   const [images, setImages] = useState<File[]>([]);
 
-  const [selectedParticipation, setSelectedParticipation] = useState<string[]>([]);
+  const [selectedParticipation, setSelectedParticipation] = useState<string[]>(
+    [],
+  );
 
   const [markers, setMarkers] = useState<MarkerType[]>([]);
 
@@ -205,7 +207,12 @@ export default function CreatePost() {
     const postRes = await fetch("/api/posts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ description, location_name, caption, route: geoRoute }),
+      body: JSON.stringify({
+        description,
+        location_name,
+        caption,
+        route: geoRoute,
+      }),
       credentials: "include",
     });
     if (!postRes.ok) {
@@ -218,7 +225,10 @@ export default function CreatePost() {
     if (images.length > 0) {
       const fd = new FormData();
       fd.append("post_id", String(createdPost.id));
-      fd.append("metadata", JSON.stringify(images.map((_, i) => ({ position: i }))));
+      fd.append(
+        "metadata",
+        JSON.stringify(images.map((_, i) => ({ position: i }))),
+      );
       images.forEach((f) => fd.append("images", f));
       const imgRes = await fetch("/api/images", {
         method: "POST",
@@ -258,11 +268,21 @@ export default function CreatePost() {
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="location_name">Location Name</FieldLabel>
-              <Input id="location_name" type="text" name="location_name" />
+              <Input
+                id="location_name"
+                type="text"
+                name="location_name"
+                placeholder="Brighton"
+              />
             </Field>
             <Field>
               <FieldLabel htmlFor="caption">Caption</FieldLabel>
-              <Input id="caption" type="text" name="caption" />
+              <Input
+                id="caption"
+                type="text"
+                name="caption"
+                placeholder="Seven Sisters Insane Summer Hike"
+              />
             </Field>
             <Field>
               <FieldLabel htmlFor="description">Description</FieldLabel>
@@ -274,7 +294,9 @@ export default function CreatePost() {
         <Combobox
           multiple
           autoHighlight
-          items={users.map((u: { id: string }) => u.id)}
+          items={users
+            .filter((u) => u.id != session?.user.id)
+            .map((u: { id: string }) => u.id)}
           value={selectedParticipation}
           onValueChange={setSelectedParticipation}
         >

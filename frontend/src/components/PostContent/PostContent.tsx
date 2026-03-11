@@ -1,7 +1,13 @@
 import { type LatLngExpression } from "leaflet";
 import { markerIcon } from "@/lib/map-icons";
 import { useEffect, useState, useMemo } from "react";
-import { MapContainer, Marker, Polyline, TileLayer } from "react-leaflet";
+import {
+  MapContainer,
+  Marker,
+  Polyline,
+  TileLayer,
+  useMap,
+} from "react-leaflet";
 import styles from "./PostContent.module.css";
 import "leaflet/dist/leaflet.css";
 import { type Point, usePost } from "@/features/post";
@@ -29,9 +35,27 @@ export default function PostContent() {
   const [route, setRoute] = useState<LatLngExpression[]>([]);
 
   const queryString = useMemo(
-    () => (post != null ? post?.route.coordinates.length >= 2 ? toQueryString(post.route.coordinates) : null : null),
+    () =>
+      post != null
+        ? post?.route.coordinates.length >= 2
+          ? toQueryString(post.route.coordinates)
+          : null
+        : null,
     [post?.route],
   );
+
+  function myFitBounds({ markers }: any) {
+    const map = useMap();
+    useEffect(() => {
+      if (markers.length >= 2) {
+        const first = markers[0];
+        const last = markers[markers.length - 1];
+
+        map.fitBounds([first, last]);
+      }
+    }, [markers, map]);
+    return null;
+  }
 
   useEffect(() => {
     const fetchRoute = async () => {
@@ -76,16 +100,18 @@ export default function PostContent() {
           </Button>
         </EmptyContent>
       </Empty>
-    )
+    );
   }
   if (error) throw error;
 
   return (
     <div className={styles.wrapper}>
-
       <div className={styles.map}>
         <MapContainer
-          center={[post.route.coordinates.at(0)![1], post.route.coordinates.at(0)![0]]}
+          center={[
+            post.route.coordinates.at(0)![1],
+            post.route.coordinates.at(0)![0],
+          ]}
           zoom={15}
           style={{ height: "400px" }}
         >
@@ -93,6 +119,7 @@ export default function PostContent() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          {myFitBounds(post.route)}
           {/* Waypoint markers */}
           {post.route.coordinates.map((point, i) => (
             <Marker
@@ -115,7 +142,10 @@ export default function PostContent() {
       </div>
 
       <center>
-        <Carousel className="w-full max-w-[27rem] md:px-8 px-0" opts={{ loop: true }}>
+        <Carousel
+          className="w-full max-w-[27rem] md:px-8 px-0"
+          opts={{ loop: true }}
+        >
           <CarouselContent>
             {Array.from({ length: 5 }).map((_, index) => (
               <CarouselItem key={index}>
@@ -136,7 +166,6 @@ export default function PostContent() {
         </Carousel>
         <p>{post.caption}</p>
       </center>
-
     </div>
   );
 }
