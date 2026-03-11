@@ -42,7 +42,7 @@ import {
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar/UserAvatar";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -308,9 +308,7 @@ export default function CreatePost() {
                     const user = users.find((u: { id: string }) => u.id === id);
                     return (
                       <ComboboxChip key={id}>
-                        <Avatar className="h-4 w-4">
-                          {user?.image && <AvatarImage src={user.image} />}
-                        </Avatar>
+                        <UserAvatar user={user ?? {}} className="h-4 w-4" />
                         {user?.name ?? id}
                       </ComboboxChip>
                     );
@@ -327,9 +325,7 @@ export default function CreatePost() {
                 const user = users.find((u: { id: string }) => u.id === id);
                 return (
                   <ComboboxItem key={id} value={id}>
-                    <Avatar>
-                      {user?.image && <AvatarImage src={user.image} />}
-                    </Avatar>
+                    <UserAvatar user={user ?? {}} />
                     {user?.name ?? id}
                   </ComboboxItem>
                 );
