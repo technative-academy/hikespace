@@ -19,7 +19,14 @@ export class ParticipController {
     }
 
     try {
-      const particip = await this.participService.create(parsed.data);
+      const particip = await this.participService.create(
+        parsed.data,
+        req.user.id
+      );
+
+      if (!particip) {
+        return res.status(403).json({ message: "User is not an owner" });
+      }
 
       return res.status(201).json(particip);
     } catch (err) {
@@ -39,7 +46,14 @@ export class ParticipController {
     }
 
     try {
-      const particip = await this.participService.createMany(parsed.data);
+      const particip = await this.participService.createMany(
+        parsed.data,
+        req.user.id
+      );
+
+      if (!particip) {
+        return res.status(403).json({ message: "User is not an owner" });
+      }
 
       return res.status(201).json(particip);
     } catch (err) {
@@ -59,7 +73,7 @@ export class ParticipController {
     }
 
     try {
-      await this.participService.delete(parsed.data.id);
+      await this.participService.delete(parsed.data.id, req.user.id);
       return res.status(200).json({ message: "OK" });
     } catch (error) {
       return res.status(500).json({ message: "Error deleting participation" });
