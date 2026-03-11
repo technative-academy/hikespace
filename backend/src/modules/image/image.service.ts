@@ -1,5 +1,6 @@
 import type { ImageRepository } from "./image.repository.js";
 import type { Image, CreateImageMetadataDto } from "./image.zod.js";
+import { ImageHandler } from "#utils/image-handler.js";
 import { s3 } from "../../config/s3.js";
 import {
   DeleteObjectCommand,
@@ -11,7 +12,9 @@ import { PostService } from "#modules/post/post.service.js";
 import { PostRepository } from "#modules/post/post.repository.js";
 
 export class ImageService {
-  constructor(private readonly images: ImageRepository) {}
+  constructor(private readonly images: ImageRepository) { }
+
+  imageHandler = new ImageHandler();
 
   postService = new PostService(new PostRepository());
 
@@ -29,14 +32,7 @@ export class ImageService {
       images.map(async (image, idx) => {
         let imageKey = new Date().getTime().toString() + image.originalname;
 
-        await s3.send(
-          new PutObjectCommand({
-            Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-            Body: image.buffer,
-            ContentType: image.mimetype,
-            Key: imageKey
-          })
-        );
+        await this.imageHandler.put(image.buffer, image.mimetype, imageKey);
 
         const toAdd = await this.images.create({
           post_id: dto.post_id,
@@ -57,16 +53,7 @@ export class ImageService {
       return null;
     }
 
-    const getCommand = new GetObjectCommand({
-      Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-      Key: getImage.image_url
-    });
-
-    const backblazeUrl = await getSignedUrl(s3, getCommand, {
-      expiresIn: 3600
-    });
-
-    getImage.image_url = backblazeUrl;
+    getImage.image_url = await this.imageHandler.get(getImage.image_url);
 
     return getImage;
   }
@@ -82,12 +69,7 @@ export class ImageService {
       return null;
     }
 
-    await s3.send(
-      new DeleteObjectCommand({
-        Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-        Key: getImage.image_url
-      })
-    );
+    await this.imageHandler.delete(getImage.image_url);
 
     this.images.delete(id);
   }

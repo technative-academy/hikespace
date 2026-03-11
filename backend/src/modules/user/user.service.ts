@@ -7,9 +7,12 @@ import {
   PutObjectCommand
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { ImageHandler } from "#utils/image-handler.js";
 
 export class UserService {
-  constructor(private readonly users: UserRepository) {}
+  constructor(private readonly users: UserRepository) { }
+
+  imageHandler = new ImageHandler();
 
   async get(id: string): Promise<PublicUser | null> {
     let getUser = await this.users.getPublicById(id);
@@ -39,16 +42,7 @@ export class UserService {
     if (!user) return null;
 
     if (user.image) {
-      const getCommand = new GetObjectCommand({
-        Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-        Key: user.image
-      });
-
-      const backblazeUrl = await getSignedUrl(s3, getCommand, {
-        expiresIn: 3600
-      });
-
-      user.image = backblazeUrl;
+      user.image = await this.imageHandler.get(user.image);
     }
 
     return {
@@ -75,25 +69,12 @@ export class UserService {
     }
 
     if (user.image) {
-      await s3.send(
-        new DeleteObjectCommand({
-          Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-          Key: user.image
-        })
-      );
+      await this.imageHandler.delete(user.image);
     }
 
     if (file) {
       let imageKey = new Date().getTime().toString() + file.originalname;
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-          Body: file.buffer,
-          ContentType: file.mimetype,
-          Key: imageKey
-        })
-      );
-
+      this.imageHandler.put(file.buffer, file.mimetype, imageKey);
       await this.users.setImageKey(id, imageKey);
     } else {
       this.users.setImageKey(id, null);
@@ -108,12 +89,7 @@ export class UserService {
     }
 
     if (user.image) {
-      await s3.send(
-        new DeleteObjectCommand({
-          Bucket: process.env.BACK_BLAZE_BUCKET_NAME!,
-          Key: user.image
-        })
-      );
+      await this.imageHandler.delete(user.image);
     }
   }
 }
