@@ -1,7 +1,7 @@
 import { markerIcon } from "@/lib/map-icons";
 import { type LatLngExpression } from "leaflet";
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, Marker, Polyline, TileLayer } from "react-leaflet";
+import { MapContainer, Marker, Polyline, TileLayer, useMap } from "react-leaflet";
 import styles from "./PostContent.module.css";
 import "leaflet/dist/leaflet.css";
 import { type Point, usePost } from "@/features/post";
@@ -27,6 +27,18 @@ import { Empty, EmptyContent, EmptyTitle } from "../ui/empty";
 
 const toQueryString = (list: Point[]) => list.map(([lat, lng]) => `${lat},${lng}`).join(";");
 
+function FitBounds({ markers }: { markers: any[] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (markers.length >= 2) {
+      const first = markers[0];
+      const last = markers[markers.length - 1];
+      map.fitBounds([first, last]);
+    }
+  }, [markers, map]);
+  return null;
+}
+
 export default function PostContent() {
   const { id } = useParams<{ id: string }>();
   let { post, isLoading, error } = usePost(Number(id));
@@ -42,19 +54,6 @@ export default function PostContent() {
         : null,
     [post?.route],
   );
-
-  function myFitBounds({ markers }: any) {
-    const map = useMap();
-    useEffect(() => {
-      if (markers.length >= 2) {
-        const first = markers[0];
-        const last = markers[markers.length - 1];
-
-        map.fitBounds([first, last]);
-      }
-    }, [markers, map]);
-    return null;
-  }
 
   useEffect(() => {
     const fetchRoute = async () => {
@@ -118,7 +117,7 @@ export default function PostContent() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {myFitBounds(post.route)}
+          <FitBounds markers={post.route.coordinates} />
           {/* Waypoint markers */}
           {post.route.coordinates.map((point, i) => (
             <Marker
