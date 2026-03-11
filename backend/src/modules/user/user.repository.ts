@@ -1,6 +1,6 @@
 import { db } from "#db/db.js";
-import { user } from "#db/schema.js";
-import { eq, InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { followTable, participTable, user } from "#db/schema.js";
+import { and, eq, exists, sql } from "drizzle-orm";
 import {
   PublicUser,
   PublicUserSchema,
@@ -10,17 +10,48 @@ import {
 
 export class UserRepository {
   async getById(id: string): Promise<UserRow | null> {
-    const rows = await db.select().from(user).where(eq(user.id, id)).limit(1);
-    const row = rows[0] ?? null;
+    const row = await db.query.user.findFirst({
+      where: (u, { eq }) => eq(u.id, id),
+      with: {
+        posts: true
+      }
+    });
+
     return row ? userSelectSchema.parse(row) : null;
   }
 
-  async getPublicById(id: string): Promise<PublicUser | null> {
+  async getPublicById(
+    id: string,
+    user_id?: string
+  ): Promise<PublicUser | null> {
+    const isFollowedExpr = user_id
+      ? exists(
+          db
+            .select()
+            .from(followTable)
+            .where(
+              and(
+                eq(followTable.following_id, user.id),
+                eq(followTable.follower_id, user_id)
+              )
+            )
+        )
+      : sql<boolean>`false`;
+
     const rows = await db
       .select({
         id: user.id,
         name: user.name,
-        image: user.image
+        image: user.image,
+        followersCount: db.$count(
+          followTable,
+          eq(followTable.following_id, user.id)
+        ),
+        followingCount: db.$count(
+          followTable,
+          eq(followTable.follower_id, user.id)
+        ),
+        isFollowed: isFollowedExpr
       })
       .from(user)
       .where(eq(user.id, id))
@@ -35,7 +66,16 @@ export class UserRepository {
       .select({
         id: user.id,
         name: user.name,
-        image: user.image
+        image: user.image,
+        followersCount: db.$count(
+          followTable,
+          eq(followTable.following_id, user.id)
+        ),
+        followingCount: db.$count(
+          followTable,
+          eq(followTable.follower_id, user.id)
+        ),
+        isFollowed: sql<boolean>`false`
       })
       .from(user);
 

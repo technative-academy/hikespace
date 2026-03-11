@@ -38,7 +38,10 @@ export class UserController {
       });
     }
     try {
-      const user = await this.userService.get(parsedParams.data.id);
+      const user = await this.userService.get(
+        parsedParams.data.id,
+        req.user?.id
+      );
 
       if (!user) {
         return res.status(404).json({

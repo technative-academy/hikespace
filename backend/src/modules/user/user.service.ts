@@ -11,8 +11,8 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 export class UserService {
   constructor(private readonly users: UserRepository) {}
 
-  async get(id: string): Promise<PublicUser | null> {
-    let getUser = await this.users.getPublicById(id);
+  async get(id: string, user_id?: string): Promise<PublicUser | null> {
+    let getUser = await this.users.getPublicById(id, user_id);
 
     if (!getUser) {
       return null;

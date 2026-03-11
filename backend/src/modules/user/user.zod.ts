@@ -8,6 +8,10 @@ export const PublicUserSchema = userSelectSchema.pick({
   id: true,
   name: true,
   image: true
+}).extend({
+  followersCount: z.number().int().nonnegative().default(0),
+  followingCount: z.number().int().nonnegative().default(0),
+  isFollowed: z.boolean().default(false)
 });
 
 export const MeUserSchema = userSelectSchema.pick({
