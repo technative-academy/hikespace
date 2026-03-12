@@ -41,7 +41,11 @@ export default function PostContent() {
   const { data: session } = authClient.useSession();
   let { post, isLoading, error } = usePost(Number(id));
   const { user: owner } = useUser(post ? String(post.owner_id) : undefined);
-  const { isLiked, likeCount, pending: likePending, toggle: toggleLike } = useLike(post?.id, post?.like_id, post?.likes);
+  const { isLiked, likeCount, pending: likePending, toggle: toggleLike } = useLike(
+    post?.id,
+    post?.like_id,
+    post?.likes,
+  );
 
   const [route, setRoute] = useState<LatLngExpression[]>([]);
 
@@ -169,13 +173,32 @@ export default function PostContent() {
             )}
           </div>
         </div>
-        <a
-          href={`/user/${post.owner_id}`}
-          className="flex items-center gap-2 mb-2 w-fit hover:opacity-80 transition-opacity"
-        >
-          <UserAvatar user={owner ?? {}} className="size-7" />
-          <span className="text-sm font-medium">{owner?.name ?? "..."}</span>
-        </a>
+
+        <div className="inline-flex items-center gap-2 mb-2">
+          <a
+            href={`/user/${post.owner_id}`}
+            className="inline-flex items-center gap-2 w-fit hover:opacity-80 transition-opacity"
+          >
+            <UserAvatar user={owner ?? {}} className="size-7" />
+            <span className="text-sm font-medium">{owner?.name ?? "..."}</span>
+          </a>
+          {post.participations?.length > 0 && (
+            <>
+              <span className="text-sm font-medium">&</span>
+              <div className="flex flex-wrap gap-3">
+                {post.participations.map((p) => (
+                  <a
+                    key={p.id}
+                    href={`/user/${p.id}`}
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  >
+                    <UserAvatar user={p} className="size-7" />
+                  </a>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
         <div className="bg-muted rounded-xl p-4 mt-3">
           <p className="text-sm font-bold">Description</p>
           <p className="italic text-sm">{post.description}</p>

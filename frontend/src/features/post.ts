@@ -23,7 +23,8 @@ export interface Post {
   caption: string;
   likes: number;
   like_id: number | null;
-  images: PostImage[]
+  images: PostImage[];
+  participations: { id: string; name: string; image: string | null }[];
 }
 
 export function usePost(id: number | undefined) {
