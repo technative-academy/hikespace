@@ -20,11 +20,11 @@ const MeUserParticipationSchema = participSchema.extend({
 });
 
 const MeUserFollowerSchema = followSchema.extend({
-  followed: UserRelationSchema
+  follower: UserRelationSchema
 });
 
 const MeUserFollowingSchema = followSchema.extend({
-  follower: UserRelationSchema
+  followed: UserRelationSchema
 });
 
 export const MeUserSchema = userSelectSchema

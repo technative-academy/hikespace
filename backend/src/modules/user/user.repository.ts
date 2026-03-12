@@ -22,12 +22,12 @@ export class UserRepository {
         },
         followers: {
           with: {
-            followed: true
+            follower: true
           }
         },
         followings: {
           with: {
-            follower: true
+            followed: true
           }
         }
       },
@@ -55,8 +55,6 @@ export class UserRepository {
       `.as("followingCount")
       })
     });
-    console.log(row);
-
     return row ? MeUserSchema.parse(row) : null;
   }
 
