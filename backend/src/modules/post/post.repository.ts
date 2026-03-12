@@ -8,7 +8,7 @@ import {
 } from "#db/schema.js";
 import { count, eq, InferInsertModel, sql } from "drizzle-orm";
 import { Post, PopulatedPost } from "./post.zod.js";
-import { PublicUser, PublicUserSchema } from "#modules/user/user.zod.js";
+import { RelationUser } from "#modules/user/user.zod.js";
 
 type LineStringGeoJSON = {
   type: "LineString";
@@ -80,7 +80,7 @@ export class PostRepository {
       .leftJoin(user, eq(participTable.user_id, user.id))
       .where(eq(participTable.post_id, id));
 
-    let participsResult: PublicUser[] = [];
+    let participsResult: RelationUser[] = [];
 
     particips.map((record) => {
       participsResult.push({

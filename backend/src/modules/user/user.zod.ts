@@ -49,5 +49,6 @@ export const setAvatarSchema = z.object({
 });
 
 export type UserRow = z.infer<typeof userSelectSchema>;
+export type RelationUser = z.infer<typeof UserRelationSchema>;
 export type PublicUser = z.infer<typeof PublicUserSchema>;
 export type MeUser = z.infer<typeof MeUserSchema>;
