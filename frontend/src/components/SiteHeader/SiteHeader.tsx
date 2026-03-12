@@ -31,7 +31,9 @@ export default function SiteHeader() {
 
   async function handleSignOut() {
     await authClient.signOut();
-    navigate("/auth");
+    navigate("/auth", {
+      state: { defaultTab: "sign_in" },
+    });
   }
 
   return (
@@ -78,6 +80,7 @@ export default function SiteHeader() {
           ) : (
             <NavLink
               to="/auth"
+              state={{ defaultTab: "sign_in" }}
               className="text-sm font-medium hover:opacity-80 transition-opacity"
             >
               Log In
@@ -140,7 +143,7 @@ export default function SiteHeader() {
                   </Button>
                 </>
               ) : (
-                <NavLink to="/auth">
+                <NavLink to="/auth" state={{ defaultTab: "sign_up" }}>
                   {({ isActive }) => (
                     <Button
                       asChild
@@ -148,7 +151,7 @@ export default function SiteHeader() {
                       variant="ghost"
                       data-active={isActive}
                     >
-                      <span>Log In</span>
+                      <span>Sign Up</span>{" "}
                     </Button>
                   )}
                 </NavLink>

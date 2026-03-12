@@ -24,6 +24,10 @@ function Home() {
   if (isLoading) return <Loading thing="home page" />;
   if (error) return <div>Error: {error.message}</div>;
 
+  const handleAuthRedirect = (tab: "sign_in" | "sign_up") => {
+    navigate("/auth", { state: { defaultTab: tab } });
+  };
+
   return (
     <div className={styles.wrapper}>
       <VStack align="start" style={{ margin: "2rem" }}>
@@ -44,7 +48,11 @@ function Home() {
           <TabsContent value="feed">
             {guest ? (
               <div className={styles.guestMessage}>
-                <h3>Hello Guest user, Welcome to Hike Space!</h3>
+                <h3>Hello Guest user, Welcome to HikeSpace!</h3>
+                <p>
+                  This is a social app that lets you share your hiking
+                  adventures with the world.
+                </p>
                 <p>
                   Sign up or log in to see the full feed and follow other
                   hikers.
@@ -52,8 +60,13 @@ function Home() {
                 <div
                   style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}
                 >
-                  <Button onClick={() => navigate("/auth")}>Sign Up</Button>
-                  <Button variant="outline" onClick={() => navigate("/auth")}>
+                  <Button onClick={() => handleAuthRedirect("sign_up")}>
+                    Sign Up
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleAuthRedirect("sign_in")}
+                  >
                     Log In
                   </Button>
                 </div>
