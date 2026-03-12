@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./Home.module.css";
 import { Loading } from "../Loading/Loading";
 import { authClient } from "@/lib/auth-client";
+import logo from "/src/assets/images/hike-space-logo.png";
 
 function Home() {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ function Home() {
 
   return (
     <div className={styles.wrapper}>
+      <img src={logo} alt="Hike Space logo" />
       <VStack align="start" style={{ margin: "2rem" }}>
         {!guest && (
           <Button variant="outline" onClick={() => navigate("/createpost")}>

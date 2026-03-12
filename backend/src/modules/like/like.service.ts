@@ -8,11 +8,11 @@ import { UserRepository } from "#modules/user/user.repository.js";
 export class LikeService {
   constructor(private readonly likes: LikeRepository) {}
 
-  postService = new PostService(new PostRepository());
+  postRepository = new PostRepository();
   userService = new UserService(new UserRepository());
 
   async create(dto: CreateLikeDto, userId: string): Promise<Like | null> {
-    const postCheck = await this.postService.get(dto.post_id, userId);
+    const postCheck = await this.postRepository.get(dto.post_id);
     const userCheck = await this.userService.get(userId);
 
     if (!postCheck || !userCheck) {

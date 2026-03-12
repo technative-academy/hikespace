@@ -46,7 +46,31 @@ export class PostRepository {
     return row as Post;
   }
 
-  async get(id: number, userId: string): Promise<PopulatedPost | null> {
+  async get(id: number): Promise<Post | null> {
+    const post = await db.query.postTable.findFirst({
+      where: eq(postTable.id, id),
+      columns: {
+        route: false
+      },
+      extras: {
+        route:
+          sql<LineStringGeoJSON>`ST_AsGeoJSON(${postTable.route})::json`.as(
+            "route"
+          )
+      }
+    });
+
+    if (!post) {
+      return null;
+    }
+
+    return post;
+  }
+
+  async getPopulated(
+    id: number,
+    userId: string
+  ): Promise<PopulatedPost | null> {
     const post = await db.query.postTable.findFirst({
       where: eq(postTable.id, id),
       columns: {
