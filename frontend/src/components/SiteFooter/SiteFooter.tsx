@@ -9,6 +9,7 @@ function SiteFooter() {
       </div>
       <br />
       <div className={styles.devs}>
+        <h2>Dev Team</h2>
         <div className={styles.devSection}>
           <h2>Frontend</h2>
           <ul>
