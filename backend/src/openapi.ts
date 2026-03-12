@@ -216,6 +216,20 @@ const MeUserOpenApiSchema = z
 const AnyJsonSchema = z
   .record(z.string(), z.any())
   .meta({ description: "Any JSON" });
+const SignInEmailRequestSchema = z
+  .object({
+    email: z.string().email(),
+    password: z.string().min(1),
+    rememberMe: z.boolean().optional()
+  })
+  .meta({
+    id: "SignInEmailRequest",
+    example: {
+      email: "jane@example.com",
+      password: "your-password",
+      rememberMe: true
+    }
+  });
 
 const IdPathParams = z.object({ id: IdPathParamSchema });
 const UserIdPathParams = z.object({ id: UserIdPathParamSchema });
@@ -329,6 +343,30 @@ const userPaths = {
         "200": jsonResponse(PublicUserOpenApiSchema),
         "400": { description: "Bad request" },
         "404": { description: "Not found" }
+      }
+    }
+  }
+};
+
+const authPaths = {
+  "/api/auth/sign-in/email": {
+    post: {
+      summary: "Sign in with email and password",
+      description:
+        "Better Auth sign-in endpoint served by this API at http://localhost:3000/api/auth/sign-in/email",
+      tags: ["Auth"],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: SignInEmailRequestSchema
+          }
+        }
+      },
+      responses: {
+        "200": jsonResponse(AnyJsonSchema),
+        "400": { description: "Bad request" },
+        "401": { description: "Invalid credentials" }
       }
     }
   }
@@ -639,6 +677,7 @@ export const openapiDocument = createDocument({
   servers: [{ url: process.env.SWAGGER_URL ?? "http://localhost:3000" }],
   tags: [
     { name: "Core" },
+    { name: "Auth" },
     { name: "Users" },
     { name: "Posts" },
     { name: "Images" },
@@ -650,6 +689,7 @@ export const openapiDocument = createDocument({
 
   paths: {
     ...corePaths,
+    ...authPaths,
     ...userPaths,
     ...postPaths,
     ...imagePaths,

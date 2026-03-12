@@ -2,6 +2,8 @@ import { db } from "#db/db.js";
 import { followTable, participTable, user } from "#db/schema.js";
 import { and, eq, exists, sql } from "drizzle-orm";
 import {
+  MeUser,
+  MeUserSchema,
   PublicUser,
   PublicUserSchema,
   UserRow,
@@ -9,15 +11,59 @@ import {
 } from "./user.zod.js";
 
 export class UserRepository {
-  async getById(id: string): Promise<UserRow | null> {
+  async getById(id: string): Promise<MeUser | null> {
     const row = await db.query.user.findFirst({
       where: (u, { eq }) => eq(u.id, id),
       with: {
-        posts: true
-      }
-    });
+        posts: true,
+        likes: {
+          with: {
+            posts: true
+          }
+        },
+        particips: {
+          with: {
+            user: true
+          }
+        },
+        followers: {
+          with: {
+            followed: true
+          }
+        },
+        followings: {
+          with: {
+            follower: true
+          }
+        }
+      },
+      columns: {
+        id: true,
+        name: true,
+        email: true,
+        image: true
+      },
+      extras: (u) => ({
+        followersCount: sql<number>`
+        (
+          select CAST(count(*) AS int)
+          from "following"
+          where "following"."following_id"= ${u.id}
+        )
+      `.as("followersCount"),
 
-    return row ? userSelectSchema.parse(row) : null;
+        followingCount: sql<number>`
+        (
+          select CAST(count(*) AS int)
+          from ${followTable}
+          where "following"."follower_id" = ${u.id}
+        )
+      `.as("followingCount")
+      })
+    });
+    console.log(row);
+
+    return row ? MeUserSchema.parse(row) : null;
   }
 
   async getPublicById(

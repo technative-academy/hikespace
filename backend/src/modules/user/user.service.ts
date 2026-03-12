@@ -1,5 +1,5 @@
 import type { UserRepository } from "./user.repository.js";
-import type { PublicUser, UserRow } from "./user.zod.js";
+import type { MeUser, PublicUser } from "./user.zod.js";
 import { s3 } from "../../config/s3.js";
 import {
   DeleteObjectCommand,
@@ -101,7 +101,7 @@ export class UserService {
   }
 
   async prepareAccountDeletion(id: string): Promise<void | null> {
-    let user: UserRow | null = await this.users.getById(id);
+    let user: MeUser | null = await this.users.getById(id);
 
     if (!user) {
       return null;
