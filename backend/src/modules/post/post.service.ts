@@ -23,7 +23,7 @@ export class PostService {
   }
 
   async get(id: number, userId: string): Promise<PopulatedPost | null> {
-    let post = await this.posts.get(id, userId);
+    let post = await this.posts.getPopulated(id, userId);
     if (post) {
       let urls = await this.imageHandler.getMany(post.images);
       await Promise.all(
@@ -47,6 +47,10 @@ export class PostService {
       })
     );
     return result;
+  }
+
+  async getFromFollowing(id: string): Promise<PopulatedPost[]> {
+    return this.posts.getFromFollowing(id);
   }
 
   async update(id: number, data: UpdatePostDto): Promise<Post | null> {

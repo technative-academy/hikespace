@@ -1,14 +1,8 @@
 import { db } from "#db/db.js";
-import {
-  likeTable,
-  postTable,
-  imageTable,
-  participTable,
-  user
-} from "#db/schema.js";
-import { count, eq, InferInsertModel, sql } from "drizzle-orm";
+import { likeTable, postTable } from "#db/schema.js";
+import { eq, InferInsertModel, sql } from "drizzle-orm";
 import { Post, PopulatedPost } from "./post.zod.js";
-import { RelationUser } from "#modules/user/user.zod.js";
+import { UserRepository } from "#modules/user/user.repository.js";
 
 type LineStringGeoJSON = {
   type: "LineString";
@@ -18,6 +12,8 @@ type LineStringGeoJSON = {
 export type NewPost = InferInsertModel<typeof postTable>;
 
 export class PostRepository {
+  userRepository = new UserRepository();
+
   async create(data: NewPost): Promise<Post> {
     const geojson = JSON.stringify(data.route);
     const result = await db.execute(sql<Post>`
@@ -177,6 +173,26 @@ export class PostRepository {
         image: p.user.image
       }))
     }));
+  }
+
+  async getFromFollowing(id: string): Promise<PopulatedPost[]> {
+    let currentUser = await this.userRepository.getById(id);
+
+    let result: PopulatedPost[] = [];
+
+    currentUser?.followings.map(async (followed) => {
+      let posts = await db
+        .select()
+        .from(postTable)
+        .where(eq(postTable.owner_id, followed.follower.id));
+
+      posts.map(async (post) => {
+        let populatedPost = await this.getPopulated(post.id, id);
+        result.push(populatedPost!);
+      });
+    });
+
+    return result;
   }
 
   async delete(id: number): Promise<void> {
