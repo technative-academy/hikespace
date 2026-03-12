@@ -18,7 +18,8 @@ export const PostSchema = createSelectSchema(postTable, {
 export const PostPopulatedSchema = PostSchema.extend({
   likes: z.number().int().nonnegative(),
   images: z.array(ImageSchema),
-  participations: z.array(UserRelationSchema)
+  participations: z.array(UserRelationSchema),
+  like_id: z.number().int().nonnegative().nullable()
 });
 
 export const CreatePostSchema = createInsertSchema(postTable, {
