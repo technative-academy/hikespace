@@ -2,6 +2,7 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { postTable } from "../../db/schema.js";
 import { ImageSchema } from "#modules/image/image.zod.js";
+import { PublicUserSchema } from "#modules/user/user.zod.js";
 
 const LineStringGeoJSON = z.object({
   type: z.literal("LineString"),
@@ -16,8 +17,9 @@ export const PostSchema = createSelectSchema(postTable, {
 
 export const PostPopulatedSchema = PostSchema.extend({
   likes: z.number().int().nonnegative(),
-  images: z.array(ImageSchema)
-})
+  images: z.array(ImageSchema),
+  participations: z.array(PublicUserSchema)
+});
 
 export const CreatePostSchema = createInsertSchema(postTable, {
   route: LineStringGeoJSON
