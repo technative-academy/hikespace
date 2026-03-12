@@ -12,17 +12,17 @@ import { PostService } from "#modules/post/post.service.js";
 import { PostRepository } from "#modules/post/post.repository.js";
 
 export class ImageService {
-  constructor(private readonly images: ImageRepository) { }
+  constructor(private readonly images: ImageRepository) {}
 
   imageHandler = new ImageHandler();
 
-  postService = new PostService(new PostRepository());
+  postRepository = new PostRepository();
 
   async create(
     dto: CreateImageMetadataDto,
     images: Express.Multer.File[]
   ): Promise<Image[] | null> {
-    const postCheck = await this.postService.get(dto.post_id);
+    const postCheck = await this.postRepository.get(dto.post_id);
 
     if (!postCheck) {
       return null;

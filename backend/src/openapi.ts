@@ -1,11 +1,32 @@
-﻿import { createDocument } from "zod-openapi";
+import { createDocument } from "zod-openapi";
 import { z } from "zod";
+import {
+  CreatePostSchema as CreatePostModelSchema,
+  PostPopulatedSchema,
+  PostSchema as PostModelSchema,
+  UpdatePostSchema as UpdatePostModelSchema
+} from "#modules/post/post.zod.js";
+import {
+  ImageSchema as ImageModelSchema,
+  uploadImageMetadataSchema
+} from "#modules/image/image.zod.js";
+import {
+  createManyParticipSchema,
+  createParticipSchema,
+  participSchema
+} from "#modules/participation/particip.zod.js";
+import { likeSchema } from "#modules/like/like.zod.js";
+import { followSchema } from "#modules/following/follow.zod.js";
 import { MeUserSchema } from "#modules/user/user.zod.js";
 import { PublicUserSchema } from "#modules/user/user.base.zod.js";
 
 const StatusOkSchema = z
   .object({ status: z.string() })
   .meta({ id: "StatusOk", example: { status: "OK" } });
+
+const MessageOkSchema = z
+  .object({ message: z.literal("OK") })
+  .meta({ id: "MessageOk", example: { message: "OK" } });
 
 const LineStringGeoJSONSchema = z
   .object({
@@ -24,59 +45,79 @@ const LineStringGeoJSONSchema = z
     }
   });
 
-const PostSchema = z
-  .object({
-    id: z.number().int(),
-    owner_id: z.number().int(),
-    description: z.string(),
-    route: LineStringGeoJSONSchema,
-    location_name: z.string(),
-    caption: z.string()
-  })
-  .meta({
-    id: "Post",
-    example: {
-      id: 1,
-      owner_id: 1,
-      description: "Walking in Brighton!",
-      route: {
-        type: "LineString",
-        coordinates: [
-          [50.828873, -0.141176],
-          [50.8293, -0.1422],
-          [50.8302, -0.1431]
-        ]
-      },
-      location_name: "Brighton",
-      caption: "Hi, this is a post about walking in Brighton!"
-    }
-  });
+const PostSchema = PostModelSchema.meta({
+  id: "Post",
+  example: {
+    id: 1,
+    owner_id: "user_123abc",
+    description: "Walking in Brighton!",
+    route: {
+      type: "LineString",
+      coordinates: [
+        [-0.141176, 50.828873],
+        [-0.1422, 50.8293],
+        [-0.1431, 50.8302]
+      ]
+    },
+    location_name: "Brighton",
+    caption: "Hi, this is a post about walking in Brighton!"
+  }
+});
 
-const CreatePostSchema = z
-  .object({
-    description: z.string(),
-    route: LineStringGeoJSONSchema,
-    location_name: z.string(),
-    caption: z.string()
-  })
-  .meta({
-    id: "CreatePost",
-    example: {
-      description: "Walking in Brighton!",
-      route: {
-        type: "LineString",
-        coordinates: [
-          [50.828873, -0.141176],
-          [50.8293, -0.1422],
-          [50.8302, -0.1431]
-        ]
-      },
-      location_name: "Brighton",
-      caption: "Hi, this is a post about walking in Brighton!"
-    }
-  });
+const PopulatedPostSchema = PostPopulatedSchema.meta({
+  id: "PopulatedPost",
+  example: {
+    id: 1,
+    owner_id: "user_123abc",
+    description: "Walking in Brighton!",
+    route: {
+      type: "LineString",
+      coordinates: [
+        [-0.141176, 50.828873],
+        [-0.1422, 50.8293],
+        [-0.1431, 50.8302]
+      ]
+    },
+    location_name: "Brighton",
+    caption: "Hi, this is a post about walking in Brighton!",
+    likes: 3,
+    images: [
+      {
+        id: 1,
+        post_id: 1,
+        image_url: "1738757200123-trail.jpg",
+        position: 0
+      }
+    ],
+    participations: [
+      {
+        id: "user_456def",
+        name: "Alex Walker",
+        image: "https://signed-url.example.com/avatar.jpg"
+      }
+    ],
+    like_id: 14
+  }
+});
 
-const UpdatePostSchema = CreatePostSchema.partial().meta({
+const CreatePostSchema = CreatePostModelSchema.meta({
+  id: "CreatePost",
+  example: {
+    description: "Walking in Brighton!",
+    route: {
+      type: "LineString",
+      coordinates: [
+        [-0.141176, 50.828873],
+        [-0.1422, 50.8293],
+        [-0.1431, 50.8302]
+      ]
+    },
+    location_name: "Brighton",
+    caption: "Hi, this is a post about walking in Brighton!"
+  }
+});
+
+const UpdatePostSchema = UpdatePostModelSchema.meta({
   id: "UpdatePost",
   example: {
     description: "Updated walk around Brighton seafront",
@@ -84,104 +125,66 @@ const UpdatePostSchema = CreatePostSchema.partial().meta({
   }
 });
 
-const ImageSchema = z
-  .object({
-    id: z.number().int(),
-    post_id: z.number().int(),
-    image_url: z.string(),
-    position: z.number().int()
-  })
-  .meta({
-    id: "Image",
-    example: {
-      id: 1,
-      post_id: 10,
-      image_url: "1738757200123-trail.jpg",
-      position: 0
-    }
-  });
+const ImageSchema = ImageModelSchema.meta({
+  id: "Image",
+  example: {
+    id: 1,
+    post_id: 10,
+    image_url: "1738757200123-trail.jpg",
+    position: 0
+  }
+});
 
-const UploadImageMetadataSchema = z
-  .array(
-    z.object({
-      position: z.number().int()
-    })
-  )
-  .meta({
-    id: "UploadImageMetadata",
-    example: [{ position: 0 }, { position: 1 }]
-  });
+const UploadImageMetadataSchema = uploadImageMetadataSchema.meta({
+  id: "UploadImageMetadata",
+  example: {
+    post_id: 10,
+    metadata: [{ position: 0 }, { position: 1 }]
+  }
+});
 
-const ParticipationSchema = z
-  .object({
-    id: z.number().int(),
-    user_id: z.string(),
-    post_id: z.number().int()
-  })
-  .meta({
-    id: "Participation",
-    example: {
-      id: 1,
-      user_id: "user_123abc",
-      post_id: 10
-    }
-  });
+const ParticipationSchema = participSchema.meta({
+  id: "Participation",
+  example: {
+    id: 1,
+    user_id: "user_123abc",
+    post_id: 10
+  }
+});
 
-const CreateParticipationSchema = z
-  .object({
-    user_id: z.string(),
-    post_id: z.number().int()
-  })
-  .meta({
-    id: "CreateParticipation",
-    example: {
-      user_id: "user_123abc",
-      post_id: 10
-    }
-  });
+const CreateParticipationSchema = createParticipSchema.meta({
+  id: "CreateParticipation",
+  example: {
+    user_id: "user_123abc",
+    post_id: 10
+  }
+});
 
-const CreateManyParticipationSchema = z
-  .object({
-    userIds: z.array(z.string()).min(1),
-    postId: z.number().int()
-  })
-  .meta({
-    id: "CreateManyParticipation",
-    example: {
-      userIds: ["user_123abc", "user_456def"],
-      postId: 10
-    }
-  });
+const CreateManyParticipationSchema = createManyParticipSchema.meta({
+  id: "CreateManyParticipation",
+  example: {
+    userIds: ["user_123abc", "user_456def"],
+    postId: 10
+  }
+});
 
-const LikeSchema = z
-  .object({
-    id: z.number().int(),
-    post_id: z.number().int(),
-    user_id: z.string()
-  })
-  .meta({
-    id: "Like",
-    example: {
-      id: 1,
-      post_id: 10,
-      user_id: "user_123abc"
-    }
-  });
+const LikeSchema = likeSchema.meta({
+  id: "Like",
+  example: {
+    id: 1,
+    post_id: 10,
+    user_id: "user_123abc"
+  }
+});
 
-const FollowSchema = z
-  .object({
-    follower_id: z.string(),
-    following_id: z.string(),
-    created_at: z.string().datetime()
-  })
-  .meta({
-    id: "Follow",
-    example: {
-      follower_id: "user_current",
-      following_id: "user_123abc",
-      created_at: "2026-03-06T12:00:00.000Z"
-    }
-  });
+const FollowSchema = followSchema.meta({
+  id: "Follow",
+  example: {
+    follower_id: "user_current",
+    following_id: "user_123abc",
+    created_at: "2026-03-06T12:00:00.000Z"
+  }
+});
 
 const IdPathParamSchema = z.coerce
   .number()
@@ -204,7 +207,11 @@ const MeUserOpenApiSchema = MeUserSchema.meta({
     image: "https://signed-url.example.com/avatar.jpg",
     followersCount: 12,
     followingCount: 7,
-    posts: []
+    posts: [],
+    likes: [],
+    particips: [],
+    followers: [],
+    followings: []
   }
 });
 
@@ -305,9 +312,7 @@ const userPaths = {
         }
       },
       responses: {
-        "200": jsonResponse(
-          z.object({ message: z.string() }).meta({ id: "UserMessageOk" })
-        ),
+        "200": jsonResponse(MessageOkSchema),
         "400": { description: "Bad request" },
         "401": { description: "Unauthorized" },
         "403": { description: "Forbidden" },
@@ -347,8 +352,7 @@ const authPaths = {
   "/api/auth/sign-in/email": {
     post: {
       summary: "Sign in with email and password",
-      description:
-        "Better Auth sign-in endpoint served by this API at http://localhost:3000/api/auth/sign-in/email",
+      description: "Better Auth sign-in endpoint served by this API.",
       tags: ["Auth"],
       requestBody: {
         required: true,
@@ -373,7 +377,7 @@ const postPaths = {
       summary: "Get all posts",
       tags: ["Posts"],
       responses: {
-        "200": jsonResponse(z.array(PostSchema)),
+        "200": jsonResponse(z.array(PopulatedPostSchema)),
         "500": { description: "Server error" }
       }
     },
@@ -406,7 +410,7 @@ const postPaths = {
         path: IdPathParams
       },
       responses: {
-        "200": jsonResponse(PostSchema),
+        "200": jsonResponse(PopulatedPostSchema),
         "400": { description: "Bad request" },
         "404": { description: "Not found" }
       }
@@ -503,6 +507,7 @@ const imagePaths = {
       responses: {
         "200": jsonResponse(ImageSchema),
         "400": { description: "Bad request" },
+        "404": { description: "Image not found" },
         "500": { description: "Server error" }
       }
     },
@@ -513,10 +518,9 @@ const imagePaths = {
         path: IdPathParams
       },
       responses: {
-        "200": jsonResponse(
-          z.object({ message: z.string() }).meta({ id: "MessageOk" })
-        ),
+        "200": jsonResponse(MessageOkSchema),
         "400": { description: "Bad request" },
+        "404": { description: "Image not found" },
         "500": { description: "Server error" }
       }
     }
@@ -577,11 +581,7 @@ const participationPaths = {
         path: IdPathParams
       },
       responses: {
-        "200": jsonResponse(
-          z
-            .object({ message: z.string() })
-            .meta({ id: "ParticipationMessageOk" })
-        ),
+        "200": jsonResponse(MessageOkSchema),
         "400": { description: "Bad request" },
         "401": { description: "Unauthorized" },
         "500": { description: "Server error" }
@@ -615,9 +615,7 @@ const likePaths = {
         path: IdPathParams
       },
       responses: {
-        "200": jsonResponse(
-          z.object({ message: z.string() }).meta({ id: "LikeMessageOk" })
-        ),
+        "200": jsonResponse(MessageOkSchema),
         "400": { description: "Bad request" },
         "401": { description: "Unauthorized" },
         "404": { description: "Like not found" },
@@ -652,9 +650,7 @@ const followPaths = {
         path: UserIdPathParams
       },
       responses: {
-        "200": jsonResponse(
-          z.object({ message: z.string() }).meta({ id: "FollowMessageOk" })
-        ),
+        "200": jsonResponse(MessageOkSchema),
         "400": { description: "Bad request" },
         "401": { description: "Unauthorized" },
         "500": { description: "Server error" }
@@ -704,8 +700,10 @@ export const openapiDocument = createDocument({
     },
     schemas: {
       StatusOk: StatusOkSchema,
+      MessageOk: MessageOkSchema,
       LineStringGeoJSON: LineStringGeoJSONSchema,
       Post: PostSchema,
+      PopulatedPost: PopulatedPostSchema,
       CreatePost: CreatePostSchema,
       UpdatePost: UpdatePostSchema,
       PublicUser: PublicUserOpenApiSchema,
