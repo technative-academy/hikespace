@@ -19,7 +19,7 @@ function FeedPost({ post }: FeedPostProps) {
   const [api, setApi] = useState<CarouselApi>();
   const autoplay = useRef<ReturnType<typeof Autoplay>>(null);
   const { user: owner } = useUser(String(post.owner_id));
-  const { isLiked, likeCount } = useLike(post.id, post.liked_id, post.likes);
+  const { isLiked, likeCount } = useLike(post.id, post.like_id, post.likes);
   if (!autoplay.current) {
     autoplay.current = Autoplay({ delay: 2000, stopOnInteraction: false, playOnInit: false });
   }

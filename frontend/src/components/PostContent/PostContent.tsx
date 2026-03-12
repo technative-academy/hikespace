@@ -41,7 +41,7 @@ export default function PostContent() {
   const { data: session } = authClient.useSession();
   let { post, isLoading, error } = usePost(Number(id));
   const { user: owner } = useUser(post ? String(post.owner_id) : undefined);
-  const { isLiked, pending: likePending, toggle: toggleLike } = useLike(post?.id);
+  const { isLiked, likeCount, pending: likePending, toggle: toggleLike } = useLike(post?.id, post?.like_id, post?.likes);
 
   const [route, setRoute] = useState<LatLngExpression[]>([]);
 
@@ -158,7 +158,7 @@ export default function PostContent() {
               className={cn("flex items-center gap-1", isLiked && "text-primary")}
             >
               <HeartIcon className={cn("size-4", isLiked && "fill-white text-white")} />
-              <span className={cn(isLiked && "text-white")}>{post.like_count ?? 42}</span>
+              <span className={cn(isLiked && "text-white")}>{likeCount}</span>
             </Button>
             {isOwner && (
               <EditPostModal

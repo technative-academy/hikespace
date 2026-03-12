@@ -12,7 +12,7 @@ export class LikeService {
   userService = new UserService(new UserRepository());
 
   async create(dto: CreateLikeDto, userId: string): Promise<Like | null> {
-    const postCheck = await this.postService.get(dto.post_id);
+    const postCheck = await this.postService.get(dto.post_id, userId);
     const userCheck = await this.userService.get(userId);
 
     if (!postCheck || !userCheck) {

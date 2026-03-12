@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 
 export type Point = [number, number];
@@ -10,9 +10,10 @@ interface RouteData {
 
 export interface PostImage {
   id: number;
+  post_id: number;
   image_url: string;
+  position: number;
 }
-
 export interface Post {
   id: number;
   owner_id: number;
@@ -20,10 +21,9 @@ export interface Post {
   route: RouteData;
   location_name: string;
   caption: string;
-  like_count?: number;
-  liked_id?: number | null;
-  likes?: number;
-  images?: PostImage[];
+  likes: number;
+  like_id: number | null;
+  images: PostImage[]
 }
 
 export function usePost(id: number | undefined) {
@@ -34,11 +34,17 @@ export function usePost(id: number | undefined) {
   return { post: data as Post | undefined, isLoading, error: error };
 }
 
-export function useLike(postId: number | undefined, initialLikedId?: number | null, initialLikes?: number) {
-  const [isLiked, setIsLiked] = useState(!!initialLikedId);
-  const [likeId, setLikeId] = useState<number | null>(initialLikedId ?? null);
-  const [likeCount, _setLikeCount] = useState(initialLikes ?? 0);
+export function useLike(postId: number | undefined, likedId: number | null | undefined, initialCount = 0) {
+  const [likeId, setLikeId] = useState<number | null>(likedId ?? null);
+  const [likeCount, setLikeCount] = useState(initialCount);
   const [pending, setPending] = useState(false);
+
+  const isLiked = likeId !== null;
+
+  useEffect(() => {
+    setLikeId(likedId ?? null);
+    setLikeCount(initialCount);
+  }, [likedId, initialCount]);
 
   async function toggle() {
     if (!postId || pending) return;
@@ -52,7 +58,7 @@ export function useLike(postId: number | undefined, initialLikedId?: number | nu
         if (!res.ok) throw new Error();
         const data = await res.json();
         setLikeId(data.id);
-        setIsLiked(true);
+        setLikeCount(c => c + 1);
       } else {
         const res = await fetch(`/api/likes/${likeId}`, {
           method: "DELETE",
@@ -60,7 +66,7 @@ export function useLike(postId: number | undefined, initialLikedId?: number | nu
         });
         if (!res.ok) throw new Error();
         setLikeId(null);
-        setIsLiked(false);
+        setLikeCount(c => c - 1);
       }
     } finally {
       setPending(false);
