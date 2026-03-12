@@ -1,6 +1,7 @@
 ﻿import { createDocument } from "zod-openapi";
 import { z } from "zod";
-import { MeUserSchema, PublicUserSchema } from "#modules/user/user.zod.js";
+import { MeUserSchema } from "#modules/user/user.zod.js";
+import { PublicUserSchema } from "#modules/user/user.base.zod.js";
 
 const StatusOkSchema = z
   .object({ status: z.string() })

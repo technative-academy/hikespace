@@ -1,14 +1,8 @@
 import { db } from "#db/db.js";
 import { followTable, participTable, user } from "#db/schema.js";
 import { and, eq, exists, sql } from "drizzle-orm";
-import {
-  MeUser,
-  MeUserSchema,
-  PublicUser,
-  PublicUserSchema,
-  UserRow,
-  userSelectSchema
-} from "./user.zod.js";
+import { MeUser, MeUserSchema, PublicUser } from "./user.zod.js";
+import { PublicUserSchema } from "./user.base.zod.js";
 
 export class UserRepository {
   async getById(id: string): Promise<MeUser | null> {
