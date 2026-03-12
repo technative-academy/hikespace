@@ -1,6 +1,6 @@
 ﻿import { createDocument } from "zod-openapi";
 import { z } from "zod";
-import { PublicUserSchema } from "#modules/user/user.zod.js";
+import { MeUserSchema, PublicUserSchema } from "#modules/user/user.zod.js";
 
 const StatusOkSchema = z
   .object({ status: z.string() })
@@ -194,24 +194,18 @@ const UserIdPathParamSchema = z
   .meta({ id: "UserIdPathParam", example: "user_123abc" });
 
 const PublicUserOpenApiSchema = PublicUserSchema.meta({ id: "PublicUser" });
-const MeUserOpenApiSchema = z
-  .object({
-    id: z.string(),
-    name: z.string().nullable(),
-    email: z.string().nullable(),
-    imageKey: z.string().nullable(),
-    image_url: z.string().nullable()
-  })
-  .meta({
-    id: "MeUser",
-    example: {
-      id: "user_123abc",
-      name: "Jane Doe",
-      email: "jane@example.com",
-      imageKey: "1738757200123-avatar.jpg",
-      image_url: "https://signed-url.example.com/avatar.jpg"
-    }
-  });
+const MeUserOpenApiSchema = MeUserSchema.meta({
+  id: "MeUser",
+  example: {
+    id: "user_123abc",
+    name: "Jane Doe",
+    email: "jane@example.com",
+    image: "https://signed-url.example.com/avatar.jpg",
+    followersCount: 12,
+    followingCount: 7,
+    posts: []
+  }
+});
 
 const AnyJsonSchema = z
   .record(z.string(), z.any())

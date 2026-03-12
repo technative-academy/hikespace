@@ -34,7 +34,7 @@ export class UserService {
     return getUser;
   }
 
-  async getMe(id: string) {
+  async getMe(id: string): Promise<MeUser | null> {
     const user = await this.users.getById(id);
     if (!user) return null;
 
@@ -51,13 +51,7 @@ export class UserService {
       user.image = backblazeUrl;
     }
 
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      imageKey: user.image,
-      image_url: user.image
-    };
+    return user;
   }
 
   async getAll(): Promise<PublicUser[]> {
