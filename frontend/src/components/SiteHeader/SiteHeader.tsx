@@ -2,6 +2,7 @@ import { useSessionUser } from "@/features/user";
 import { authClient } from "@/lib/auth-client";
 import { LogOutIcon, Menu, UserIcon } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
+import logo from "../../../public/hike-space-logo.png";
 import { HStack, VStack } from "../Stack/Stack";
 import { Button } from "../ui/button";
 import {
@@ -21,30 +22,33 @@ export default function SiteHeader() {
   const { user } = useSessionUser();
   const navigate = useNavigate();
 
-  const navLinks = [
-    { label: "Home", url: "/" },
-  ];
+  const navLinks = [{ label: "Home", url: "/" }];
 
   async function handleSignOut() {
     await authClient.signOut();
-    navigate("/auth");
+    navigate("/auth", {
+      state: { defaultTab: "sign_in" },
+    });
   }
 
   return (
     <header className={styles.wrapper}>
       <div className={styles.inner}>
-        {/* desktop nav links (left) */}
-        <NavigationMenu className="hidden md:flex">
-          <NavigationMenuList>
-            {navLinks.map((navLink) => (
-              <NavigationMenuItem key={navLink.url}>
-                <NavigationMenuLink asChild>
-                  <NavLink to={navLink.url}>{navLink.label}</NavLink>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
+        <div className="flex items-center gap-2">
+          <img src={logo} alt="Hike Space Logo" className={styles.logo} />
+          {/* desktop nav links (left) */}
+          <NavigationMenu className="hidden md:flex">
+            <NavigationMenuList>
+              {navLinks.map((navLink) => (
+                <NavigationMenuItem key={navLink.url}>
+                  <NavigationMenuLink asChild>
+                    <NavLink to={navLink.url}>{navLink.label}</NavLink>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
 
         {/* desktop auth (right) */}
         <div className="hidden md:flex items-center">
@@ -58,7 +62,9 @@ export default function SiteHeader() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate(`/user/${session.user.id}`)}>
+                  <DropdownMenuItem
+                    onClick={() => navigate(`/user/${session.user.id}`)}
+                  >
                     <UserIcon className="size-4" />
                     View profile
                   </DropdownMenuItem>
@@ -70,7 +76,15 @@ export default function SiteHeader() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )
-            : <NavLink to="/auth" className="text-sm font-medium hover:opacity-80 transition-opacity">Log In</NavLink>}
+            : (
+              <NavLink
+                to="/auth"
+                state={{ defaultTab: "sign_in" }}
+                className="text-sm font-medium hover:opacity-80 transition-opacity"
+              >
+                Log In
+              </NavLink>
+            )}
         </div>
 
         {/* mobile */}
@@ -130,7 +144,7 @@ export default function SiteHeader() {
                   </>
                 )
                 : (
-                  <NavLink to="/auth">
+                  <NavLink to="/auth" state={{ defaultTab: "sign_up" }}>
                     {({ isActive }) => (
                       <Button
                         asChild
@@ -138,7 +152,8 @@ export default function SiteHeader() {
                         variant="ghost"
                         data-active={isActive}
                       >
-                        <span>Log In</span>
+                        <span>Sign Up</span>
+                        {" "}
                       </Button>
                     )}
                   </NavLink>

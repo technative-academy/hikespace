@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import styles from "./Auth.module.css";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "../ui/field";
 import { Input } from "../ui/input";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { authClient } from "@/lib/auth-client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -48,9 +48,25 @@ export default function Auth() {
     navigate("/");
   }
 
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
+
+  // Set the active tab based on navigation state
+  useEffect(() => {
+    if (location.state?.defaultTab) {
+      setActiveTab(location.state.defaultTab);
+      // Clear the state so it doesn't persist on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   return (
     <div className={styles.wrapper}>
-      <Tabs defaultValue="sign_in" style={{ alignSelf: "stretch" }}>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as "signin" | "signup")}
+        style={{ alignSelf: "stretch" }}
+      >
         <TabsList variant="line">
           <TabsTrigger value="sign_in">Sign In</TabsTrigger>
           <TabsTrigger value="sign_up">Sign Up</TabsTrigger>

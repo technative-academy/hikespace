@@ -4,6 +4,7 @@
   box-shadow: var(--shadow);
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .inner {
@@ -13,4 +14,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
+}
+
+.logo {
+  height: 2rem;
+  width: auto;
+  flex-shrink: 0;
 }
