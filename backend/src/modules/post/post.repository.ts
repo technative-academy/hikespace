@@ -106,87 +106,53 @@ export class PostRepository {
   }
 
   async getAll(): Promise<PopulatedPost[]> {
-    const imageQuery = db
-      .select()
-      .from(imageTable)
-      .orderBy(imageTable.position)
-      .as("imageQuery");
-
-    const participQuery = db
-      .select({
-        id: user.id,
-        name: user.name,
-        image: user.image,
-        post_id: participTable.post_id
-      })
-      .from(participTable)
-      .leftJoin(user, eq(participTable.user_id, user.id))
-      .as("participQuery");
-
-    const rows = await db
-      .select({
-        id: postTable.id,
-        owner_id: postTable.owner_id,
-        description: postTable.description,
-        route: sql<LineStringGeoJSON>`ST_AsGeoJSON(${postTable.route})::json`,
-        location_name: postTable.location_name,
-        caption: postTable.caption,
-        likes: db.$count(likeTable, eq(likeTable.post_id, postTable.id)),
-        image: {
-          id: imageQuery.id,
-          post_id: imageQuery.post_id,
-          image_url: imageQuery.image_url,
-          position: imageQuery.position
-        },
-        participations: {
-          id: participQuery.id,
-          name: participQuery.name,
-          image: participQuery.image
+    const posts = await db.query.postTable.findMany({
+      columns: {
+        route: false
+      },
+      extras: {
+        route:
+          sql<LineStringGeoJSON>`ST_AsGeoJSON(${postTable.route})::json`.as(
+            "route"
+          ),
+        likes: sql<number>`
+                (
+                  select CAST(count(*) AS int)
+                  from ${likeTable}
+                  where "like"."post_id" = ${postTable.id}
+                )
+              `.as("likes")
+      },
+      with: {
+        images: true,
+        particips: {
+          columns: {},
+          with: {
+            user: {
+              columns: {
+                id: true,
+                name: true,
+                image: true
+              }
+            }
+          }
         }
-      })
-      .from(postTable)
-      .leftJoin(imageQuery, eq(postTable.id, imageQuery.post_id))
-      .leftJoin(participQuery, eq(postTable.id, participQuery.post_id));
-
-    const posts = rows.reduce<Map<number, PopulatedPost>>((acc, row) => {
-      let post = acc.get(row.id);
-
-      if (!post) {
-        post = {
-          id: row.id,
-          owner_id: row.owner_id,
-          description: row.description,
-          route: row.route,
-          location_name: row.location_name,
-          caption: row.caption,
-          likes: row.likes,
-          images: [],
-          participations: [],
-          like_id: null
-        };
-
-        acc.set(row.id, post!);
       }
+    });
 
-      if (row.image?.id !== null && row.image?.id !== undefined) {
-        post?.images.push(row.image);
-      }
+    if (!posts) {
+      return [];
+    }
 
-      if (
-        row.participations?.id !== null &&
-        row.participations?.id !== undefined
-      ) {
-        post?.participations.push({
-          id: row.participations.id!,
-          name: row.participations.name!,
-          image: row.participations.image
-        });
-      }
-
-      return acc;
-    }, new Map());
-
-    return Array.from(posts.values());
+    return posts.map((post) => ({
+      ...post,
+      like_id: null,
+      participations: post.particips.map((p) => ({
+        id: p.user.id,
+        name: p.user.name,
+        image: p.user.image
+      }))
+    }));
   }
 
   async delete(id: number): Promise<void> {
