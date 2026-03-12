@@ -7,11 +7,7 @@ export const userSelectSchema = createSelectSchema(user);
 export const UserRelationSchema = userSelectSchema.pick({
   id: true,
   name: true,
-  email: true,
-  emailVerified: true,
-  image: true,
-  createdAt: true,
-  updatedAt: true
+  image: true
 });
 
 export const PublicUserSchema = userSelectSchema
