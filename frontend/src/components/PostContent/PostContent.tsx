@@ -182,35 +182,35 @@ export default function PostContent() {
         </div>
       </div>
 
-      <center>
-        <Carousel
-          className="w-full max-w-[27rem] md:px-8 px-0"
-          opts={{ loop: true }}
-        >
-          <CarouselContent>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <CarouselItem key={index}>
-                <div className="p-1">
-                  <Card className="py-0">
-                    <CardContent className="px-0">
-                      <img
-                        className="rounded-xl aspect-landscape"
-                        src="https://images.unsplash.com/photo-1462143338528-eca9936a4d09?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                        alt="forest"
-                        width="964"
-                        height="643"
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselNext className="hidden md:flex" />
-          <CarouselPrevious className="hidden md:flex" />
-        </Carousel>
-        <p>{post.caption}</p>
-      </center>
+      {(post.images ?? []).length > 0 && (
+        <center>
+          <Carousel
+            className="w-full max-w-[27rem] md:px-8 px-0"
+            opts={{ loop: true }}
+          >
+            <CarouselContent>
+              {(post.images ?? []).map((image, index) => (
+                <CarouselItem key={index}>
+                  <div className="p-1">
+                    <Card className="py-0">
+                      <CardContent className="px-0">
+                        <img
+                          className="rounded-xl aspect-landscape"
+                          src={image.image_url}
+                          alt={post.caption}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselNext className="hidden md:flex" />
+            <CarouselPrevious className="hidden md:flex" />
+          </Carousel>
+          <p>{post.caption}</p>
+        </center>
+      )}
     </div>
   );
 }
