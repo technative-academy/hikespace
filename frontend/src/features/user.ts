@@ -16,23 +16,20 @@ export interface SessionUser {
   id: string;
   name: string | null;
   email: string | null;
-  imageKey: string | null;
-  image_url: string | null;
+  image: string | null;
 }
 
 export function useSessionUser() {
   const { data, error, isLoading } = useSWR<SessionUser>("/api/users/me");
-  const user = data ? { ...data, image: data.image_url } : undefined;
+  const user = data ?? undefined;
   return { user, isLoading, error };
 }
 
 export function useUser(id: string | undefined) {
   const { data, error, isLoading } = useSWR<ApiUser>(
     id ? `/api/users/${id}` : null,
+    { revalidateIfStale: false }
   );
-
-    console.log(JSON.stringify(data));
-
 
   return { user: data as ApiUser | undefined, isLoading, error: error };
 }
