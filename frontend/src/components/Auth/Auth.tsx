@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import styles from "./Auth.module.css";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "../ui/field";
 import { Input } from "../ui/input";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { authClient } from "@/lib/auth-client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -25,7 +25,10 @@ export default function Auth() {
       email: fd.get("email") as string,
       password: fd.get("password") as string,
     });
-    if (error) { setSignInError(error.message ?? "Sign in failed"); return; }
+    if (error) {
+      setSignInError(error.message ?? "Sign in failed");
+      return;
+    }
     navigate("/");
   }
 
@@ -38,13 +41,32 @@ export default function Auth() {
       name: fd.get("username") as string,
       password: fd.get("password") as string,
     });
-    if (error) { setSignUpError(error.message ?? "Sign up failed"); return; }
+    if (error) {
+      setSignUpError(error.message ?? "Sign up failed");
+      return;
+    }
     navigate("/");
   }
 
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
+
+  // Set the active tab based on navigation state
+  useEffect(() => {
+    if (location.state?.defaultTab) {
+      setActiveTab(location.state.defaultTab);
+      // Clear the state so it doesn't persist on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   return (
     <div className={styles.wrapper}>
-      <Tabs defaultValue="sign_in" style={{ alignSelf: "stretch" }}>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as "signin" | "signup")}
+        style={{ alignSelf: "stretch" }}
+      >
         <TabsList variant="line">
           <TabsTrigger value="sign_in">Sign In</TabsTrigger>
           <TabsTrigger value="sign_up">Sign Up</TabsTrigger>
@@ -55,7 +77,7 @@ export default function Auth() {
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input type="email" name="email" />
+                  <Input type="email" name="email" placeholder="jane@doe.com" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>
@@ -77,11 +99,15 @@ export default function Auth() {
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input type="email" name="email" />
+                  <Input type="email" name="email" placeholder="jane@doe.com" />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="username">Username</FieldLabel>
-                  <Input type="text" name="username" />
+                  <Input
+                    type="text"
+                    name="username"
+                    placeholder="janedoe1234"
+                  />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="password">Password</FieldLabel>

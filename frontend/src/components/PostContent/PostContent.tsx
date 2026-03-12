@@ -1,40 +1,57 @@
 import { markerIcon } from "@/lib/map-icons";
 import { type LatLngExpression } from "leaflet";
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, Marker, Polyline, TileLayer } from "react-leaflet";
+import { MapContainer, Marker, Polyline, TileLayer, useMap } from "react-leaflet";
 import styles from "./PostContent.module.css";
 import "leaflet/dist/leaflet.css";
-import { type Point, usePost } from "@/features/post";
-import { useParams } from "react-router-dom";
+import { type Point, useLike, usePost } from "@/features/post";
+import { useUser } from "@/features/user";
+import { cn } from "@/lib/utils";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { mutate } from "swr";
 
-import { HeartIcon, Trash2Icon } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { HeartIcon } from "lucide-react";
 import { Loading } from "../Loading/Loading";
-import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
 import { Empty, EmptyContent, EmptyTitle } from "../ui/empty";
+import { UserAvatar } from "../UserAvatar/UserAvatar";
+import EditPostModal from "./EditPostModal";
 
 const toQueryString = (list: Point[]) => list.map(([lat, lng]) => `${lat},${lng}`).join(";");
 
+function FitBounds({ markers }: { markers: [number, number][] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (markers.length >= 2) {
+      const first = markers[0];
+      const last = markers[markers.length - 1];
+      map.fitBounds([[first[1], first[0]], [last[1], last[0]]]);
+    }
+  }, [markers, map]);
+  return null;
+}
+
 export default function PostContent() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { data: session } = authClient.useSession();
   let { post, isLoading, error } = usePost(Number(id));
+  const { user: owner } = useUser(post ? String(post.owner_id) : undefined);
+  const { isLiked, pending: likePending, toggle: toggleLike } = useLike(post?.id);
 
   const [route, setRoute] = useState<LatLngExpression[]>([]);
 
   const queryString = useMemo(
-    () => (post != null ? post?.route.coordinates.length >= 2 ? toQueryString(post.route.coordinates) : null : null),
+    () =>
+      post != null
+        ? post?.route.coordinates.length >= 2
+          ? toQueryString(post.route.coordinates)
+          : null
+        : null,
     [post?.route],
   );
 
@@ -85,11 +102,27 @@ export default function PostContent() {
   }
   if (error) throw error;
 
+  const isOwner = session?.user.id === String(post.owner_id);
+  async function handleDelete() {
+    const res = await fetch(`/api/posts/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (res.ok) {
+      navigate("/");
+    } else {
+      toast.error("Failed to delete post");
+    }
+  }
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.map} style={{ zIndex: 0, position: "relative" }}>
         <MapContainer
-          center={[post.route.coordinates.at(0)![1], post.route.coordinates.at(0)![0]]}
+          center={[
+            post.route.coordinates.at(0)![1],
+            post.route.coordinates.at(0)![0],
+          ]}
           zoom={15}
           style={{ height: "400px" }}
         >
@@ -97,6 +130,7 @@ export default function PostContent() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          <FitBounds markers={post.route.coordinates} />
           {/* Waypoint markers */}
           {post.route.coordinates.map((point, i) => (
             <Marker
@@ -112,30 +146,35 @@ export default function PostContent() {
       </div>
       <div className="p-4">
         <div className="flex items-center justify-between">
-          <p className="text-lg font-bold">📍 {post.location_name}</p>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm">78920</span>
-              <Button variant="outline" size="icon" className="rounded-full">
-                <HeartIcon className="size-4" />
-              </Button>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-primary">78921</span>
-              <Button variant="outline" size="icon" className="rounded-full border-primary bg-primary/10">
-                <HeartIcon className="size-[1.1rem] fill-primary text-primary" />
-              </Button>
-            </div>
+          <div className="flex items-center gap-2">
+            <p className="text-lg font-bold">📍 {post.location_name}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={isLiked ? "default" : isOwner ? "ghost" : "outline"}
+              size="sm"
+              onClick={toggleLike}
+              disabled={!session || isOwner || likePending}
+              className={cn("flex items-center gap-1", isLiked && "text-primary")}
+            >
+              <HeartIcon className={cn("size-4", isLiked && "fill-white text-white")} />
+              <span className={cn(isLiked && "text-white")}>{post.like_count ?? 42}</span>
+            </Button>
+            {isOwner && (
+              <EditPostModal
+                post={post}
+                onSuccess={() => mutate(`/api/posts/${id}`)}
+                onDelete={handleDelete}
+              />
+            )}
           </div>
         </div>
         <a
           href={`/user/${post.owner_id}`}
           className="flex items-center gap-2 mb-2 w-fit hover:opacity-80 transition-opacity"
         >
-          <Avatar className="size-7">
-            <AvatarFallback>JD</AvatarFallback>
-          </Avatar>
-          <span className="text-sm font-medium">John Doe</span>
+          <UserAvatar user={owner ?? {}} className="size-7" />
+          <span className="text-sm font-medium">{owner?.name ?? "..."}</span>
         </a>
         <div className="bg-muted rounded-xl p-4 mt-3">
           <p className="text-sm font-bold">Description</p>
@@ -144,7 +183,10 @@ export default function PostContent() {
       </div>
 
       <center>
-        <Carousel className="w-full max-w-[27rem] md:px-8 px-0" opts={{ loop: true }}>
+        <Carousel
+          className="w-full max-w-[27rem] md:px-8 px-0"
+          opts={{ loop: true }}
+        >
           <CarouselContent>
             {Array.from({ length: 5 }).map((_, index) => (
               <CarouselItem key={index}>
@@ -169,36 +211,6 @@ export default function PostContent() {
         </Carousel>
         <p>{post.caption}</p>
       </center>
-      <div className="p-4">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive gap-2"
-            >
-              <Trash2Icon className="size-4" />
-              Delete post
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete post?</DialogTitle>
-              <DialogDescription>
-                This action cannot be undone. The post and all its images will be permanently deleted.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button variant="destructive" onClick={() => console.log("delete post")}>
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
     </div>
   );
 }

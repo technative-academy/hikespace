@@ -59,6 +59,16 @@ hikespace/
   backend/    # Node/Express API + DB layer
 ```
 
+## Quick Start
+
+Run all services at once from the project root:
+
+```bash
+npm run dev
+```
+
+This starts the database, backend, frontend, and Drizzle Studio in parallel via [mprocs](https://github.com/pvolok/mprocs) (no install needed).
+
 ## Local Setup
 
 ### Prerequisites

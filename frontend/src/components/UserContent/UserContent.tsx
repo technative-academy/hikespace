@@ -1,15 +1,16 @@
 import type { Post } from "@/features/post";
-import { useUser } from "@/features/user";
-import { UserMinusIcon, UserPlusIcon } from "lucide-react";
+import { useFollow, useUser } from "@/features/user";
+import { authClient } from "@/lib/auth-client";
+import { UserMinusIcon, UserPlusIcon, UsersIcon } from "lucide-react";
 import { useParams } from "react-router-dom";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import FeedPost from "../FeedPost/FeedPost";
 import { Grid } from "../Grid/Grid";
 import { Loading } from "../Loading/Loading";
-import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Empty, EmptyContent, EmptyTitle } from "../ui/empty";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { UserAvatar } from "../UserAvatar/UserAvatar";
 import EditProfileModal from "./EditProfileModal";
 
 const COVER_IMAGES = [
@@ -22,9 +23,11 @@ const COVER_IMAGES = [
 
 export default function UserContent() {
   const { id } = useParams<{ id: string }>();
+  const { data: session } = authClient.useSession();
 
   const { user, error: userError, isLoading: userIsLoading } = useUser(id);
   const { data: posts, error, isLoading } = useSWR<Post[]>("/api/posts");
+  const { isFollowing, pending: followPending, toggle: toggleFollow } = useFollow(id);
 
   if (userIsLoading) return <Loading thing="user" />;
   if (!user) {
@@ -49,13 +52,6 @@ export default function UserContent() {
     (id ?? "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % COVER_IMAGES.length
   ];
 
-  const initials = user.name
-    ?.split(" ")
-    .map((n: string) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
   return (
     <div>
       <div className="relative aspect-32/9">
@@ -67,26 +63,32 @@ export default function UserContent() {
           src={coverImage}
         />
         <div className="rounded-full absolute z-20 aspect-square w-24 left-8 -bottom-12  border-[var(--card)] border-4">
-          <Avatar className="h-full w-full">
-            <AvatarFallback className="text-[3rem]">{initials}</AvatarFallback>
-          </Avatar>
+          <UserAvatar user={user} className="h-full w-full" fallbackClassName="text-[3rem]" />
         </div>
       </div>
       <div className="p-4">
-        <div className="flex items-center justify-end">
-          <EditProfileModal user={user} />
-          <div className="flex items-center gap-2 ml-2">
-            <span className="text-sm text-muted-foreground">124</span>
-            <Button variant="outline" size="icon" className="rounded-full">
-              <UserPlusIcon className="size-4" />
-            </Button>
-          </div>
-          <div className="flex items-center gap-2 ml-2">
-            <span className="text-sm text-muted-foreground">125</span>
-            <Button variant="outline" size="icon" className="rounded-full">
-              <UserMinusIcon className="size-4" />
-            </Button>
-          </div>
+        <div className="flex items-center justify-end gap-2 min-h-8">
+          {session?.user.id === id && <EditProfileModal user={user} onSuccess={() => mutate(`/api/users/${id}`)} />}
+          {session && session.user.id !== id && (
+            <>
+              <span>99</span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full"
+                onClick={toggleFollow}
+                disabled={followPending}
+                aria-label={isFollowing ? "Unfollow" : "Follow"}
+              >
+                {isFollowing ? <UserMinusIcon className="size-4" /> : <UserPlusIcon className="size-4" />}
+              </Button>
+            </>
+          )}
+          {!session && (
+            <>
+              <span>99</span> <UsersIcon className="size-4" />
+            </>
+          )}
         </div>
         <div className="flex items-center gap-2 mb-4">
           <p className="text-2xl font-bold">{user.name}</p>

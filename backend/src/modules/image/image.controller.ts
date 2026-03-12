@@ -21,6 +21,11 @@ export class ImageController {
       });
     }
 
+    if (validated.data.metadata.length !== files.length) {
+      return res.status(400).json({
+        message: "Invalid parameters"
+      });
+    }
     try {
       const image = await this.imageService.create(validated.data, files);
 

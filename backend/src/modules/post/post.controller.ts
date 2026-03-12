@@ -1,6 +1,11 @@
 import type { Request, Response } from "express";
 import type { PostService } from "./post.service.js";
-import { CreatePostSchema, PostPopulatedSchema, PostSchema, UpdatePostSchema } from "./post.zod.js";
+import {
+  CreatePostSchema,
+  PostPopulatedSchema,
+  PostSchema,
+  UpdatePostSchema
+} from "./post.zod.js";
 import { IdParamSchema } from "#utils/validators.js";
 
 export class PostController {
@@ -61,9 +66,16 @@ export class PostController {
 
   // GET /posts/
   getAll = async (_req: Request, res: Response) => {
-    const posts = await this.postService.getAll();
+    try {
+      const posts = await this.postService.getAll();
 
-    return res.status(200).json(PostPopulatedSchema.array().parse(posts));
+      return res.status(200).json(PostPopulatedSchema.array().parse(posts));
+    } catch (error) {
+      return res.status(500).json({
+        message: "Invalid id parameter",
+        error
+      });
+    }
   };
 
   // PUT /posts/:id
