@@ -101,6 +101,18 @@ export class PostController {
     }
   };
 
+  getByUser = async (req: Request, res: Response) => {
+    let posts = await this.postService.getAll();
+
+    return res.status(200).json(posts[0]);
+  };
+
+  likedByUser = async (req: Request, res: Response) => {
+    let posts = await this.postService.getAll();
+
+    return res.status(200).json(posts[1]);
+  };
+
   // PUT /posts/:id
   update = async (req: Request, res: Response) => {
     if (!req.user) {

@@ -15,6 +15,8 @@ router.post("/", requireAuth, postController.create);
 router.get("/:id", checkAuth, postController.get);
 router.get("/", postController.getAll);
 router.get("/following", requireAuth, postController.getFromFollowing);
+router.get("/by-user/:id", postController.getByUser);
+router.get("/liked-by/:id", postController.likedByUser);
 router.put("/:id", requireAuth, postController.update);
 router.delete("/:id", requireAuth, postController.delete);
 
