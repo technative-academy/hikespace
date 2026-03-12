@@ -177,22 +177,22 @@ export class PostRepository {
 
   async getFromFollowing(id: string): Promise<PopulatedPost[]> {
     let currentUser = await this.userRepository.getById(id);
+    if (!currentUser) return [];
 
-    let result: PopulatedPost[] = [];
+    const result = await Promise.all(
+      currentUser.followings.map(async (followed) => {
+        const posts = await db
+          .select()
+          .from(postTable)
+          .where(eq(postTable.owner_id, followed.follower.id));
 
-    currentUser?.followings.map(async (followed) => {
-      let posts = await db
-        .select()
-        .from(postTable)
-        .where(eq(postTable.owner_id, followed.follower.id));
+        return Promise.all(
+          posts.map((post) => this.getPopulated(post.id, id))
+        );
+      })
+    );
 
-      posts.map(async (post) => {
-        let populatedPost = await this.getPopulated(post.id, id);
-        result.push(populatedPost!);
-      });
-    });
-
-    return result;
+    return result.flat().filter((p): p is PopulatedPost => p !== null);
   }
 
   async delete(id: number): Promise<void> {
