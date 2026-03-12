@@ -1,6 +1,12 @@
 import { db } from "#db/db.js";
 import { likeTable, postTable, imageTable } from "#db/schema.js";
-import { count, eq, InferInsertModel, InferSelectModel, sql } from "drizzle-orm";
+import {
+  count,
+  eq,
+  InferInsertModel,
+  InferSelectModel,
+  sql
+} from "drizzle-orm";
 import { Post, PopulatedPost } from "./post.zod.js";
 
 type LineStringGeoJSON = {
@@ -57,17 +63,27 @@ export class PostRepository {
       return null;
     }
 
-    let [likes] = await db.select({ count: count() }).from(likeTable).where(eq(likeTable.post_id, id));
+    let [likes] = await db
+      .select({ count: count() })
+      .from(likeTable)
+      .where(eq(likeTable.post_id, id));
 
-    let images = await db.select().from(imageTable).where(eq(imageTable.post_id, id));
+    let images = await db
+      .select()
+      .from(imageTable)
+      .where(eq(imageTable.post_id, id));
 
-    return {...post, likes: likes.count, images};
+    return { ...post, likes: likes.count, images };
   }
 
   async getAll(): Promise<PopulatedPost[]> {
-    const imageQuery = db.select().from(imageTable).orderBy(imageTable.position).limit(1).as("imageQuery");
+    const imageQuery = db
+      .select()
+      .from(imageTable)
+      .orderBy(imageTable.position)
+      .as("imageQuery");
 
-    const allPosts: PopulatedPost[] = await db
+    const rows = await db
       .select({
         id: postTable.id,
         owner_id: postTable.owner_id,
@@ -76,12 +92,42 @@ export class PostRepository {
         location_name: postTable.location_name,
         caption: postTable.caption,
         likes: db.$count(likeTable, eq(likeTable.post_id, postTable.id)),
-        images: imageTable
+        image: {
+          id: imageQuery.id,
+          post_id: imageQuery.post_id,
+          image_url: imageQuery.image_url,
+          position: imageQuery.position
+        }
       })
       .from(postTable)
-      .leftJoin(imageQuery, eq(postTable.id, imageQuery.post_id)).groupBy(postTable.id);
+      .leftJoin(imageQuery, eq(postTable.id, imageQuery.post_id));
 
-    return allPosts;
+    const posts = rows.reduce<Map<number, PopulatedPost>>((acc, row) => {
+      let post = acc.get(row.id);
+
+      if (!post) {
+        post = {
+          id: row.id,
+          owner_id: row.owner_id,
+          description: row.description,
+          route: row.route,
+          location_name: row.location_name,
+          caption: row.caption,
+          likes: row.likes,
+          images: []
+        };
+
+        acc.set(row.id, post);
+      }
+
+      if (row.image?.id !== null && row.image?.id !== undefined) {
+        post.images.push(row.image);
+      }
+
+      return acc;
+    }, new Map());
+
+    return Array.from(posts.values());
   }
 
   async delete(id: number): Promise<void> {
