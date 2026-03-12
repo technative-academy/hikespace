@@ -27,7 +27,8 @@ export default function UserContent() {
 
   const { user, error: userError, isLoading: userIsLoading } = useUser(id);
   const { data: posts, error, isLoading } = useSWR<Post[]>("/api/posts");
-  const { isFollowing, pending: followPending, toggle: toggleFollow } = useFollow(id);
+  const { isFollowing, pending: followPending, toggle: toggleFollow } = useFollow(id, user?.isFollowed);
+  const followerCount = (user?.followersCount ?? 0) + (isFollowing ? 1 : 0) - (user?.isFollowed ? 1 : 0);
 
   if (userIsLoading) return <Loading thing="user" />;
   if (!user) {
@@ -68,10 +69,15 @@ export default function UserContent() {
       </div>
       <div className="p-4">
         <div className="flex items-center justify-end gap-2 min-h-8">
-          {session?.user.id === id && <EditProfileModal user={user} onSuccess={() => mutate(`/api/users/${id}`)} />}
+          {session?.user.id === id && (
+            <>
+              <span>{user.followersCount}</span> <UsersIcon className="size-4" />
+              <EditProfileModal user={user} onSuccess={() => mutate(`/api/users/${id}`)} />
+            </>
+          )}
           {session && session.user.id !== id && (
             <>
-              <span>99</span>
+              <span>{followerCount}</span>
               <Button
                 variant="outline"
                 size="icon"
@@ -86,7 +92,7 @@ export default function UserContent() {
           )}
           {!session && (
             <>
-              <span>99</span> <UsersIcon className="size-4" />
+              <span>{user.followersCount}</span> <UsersIcon className="size-4" />
             </>
           )}
         </div>

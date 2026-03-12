@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 
 export type Point = [number, number];
@@ -7,6 +7,9 @@ export interface ApiUser {
   id: string;
   name: string;
   image: string | null;
+  followersCount: number;
+  followingCount: number;
+  isFollowed: boolean;
 }
 
 export interface SessionUser {
@@ -41,9 +44,13 @@ export function useUsers() {
   return { users: data ?? [], isLoading, error };
 }
 
-export function useFollow(targetUserId: string | undefined) {
-  const [isFollowing, setIsFollowing] = useState(false);
+export function useFollow(targetUserId: string | undefined, initialFollowing = false) {
+  const [isFollowing, setIsFollowing] = useState(initialFollowing);
   const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    setIsFollowing(initialFollowing);
+  }, [initialFollowing]);
 
   async function toggle() {
     if (!targetUserId || pending) return;
