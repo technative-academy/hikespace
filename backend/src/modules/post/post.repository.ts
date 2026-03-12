@@ -1,13 +1,14 @@
 import { db } from "#db/db.js";
-import { likeTable, postTable, imageTable } from "#db/schema.js";
 import {
-  count,
-  eq,
-  InferInsertModel,
-  InferSelectModel,
-  sql
-} from "drizzle-orm";
+  likeTable,
+  postTable,
+  imageTable,
+  participTable,
+  user
+} from "#db/schema.js";
+import { count, eq, InferInsertModel, sql } from "drizzle-orm";
 import { Post, PopulatedPost } from "./post.zod.js";
+import { PublicUser, PublicUserSchema } from "#modules/user/user.zod.js";
 
 type LineStringGeoJSON = {
   type: "LineString";
@@ -73,7 +74,28 @@ export class PostRepository {
       .from(imageTable)
       .where(eq(imageTable.post_id, id));
 
-    return { ...post, likes: likes.count, images };
+    let particips = await db
+      .select({ id: user.id, name: user.name, image: user.image })
+      .from(participTable)
+      .leftJoin(user, eq(participTable.user_id, user.id))
+      .where(eq(participTable.post_id, id));
+
+    let participsResult: PublicUser[] = [];
+
+    particips.map((record) => {
+      participsResult.push({
+        id: record.id!,
+        name: record.name!,
+        image: record.image
+      });
+    });
+
+    return {
+      ...post,
+      likes: likes.count,
+      images,
+      participations: participsResult
+    };
   }
 
   async getAll(): Promise<PopulatedPost[]> {
@@ -82,6 +104,17 @@ export class PostRepository {
       .from(imageTable)
       .orderBy(imageTable.position)
       .as("imageQuery");
+
+    const participQuery = db
+      .select({
+        id: user.id,
+        name: user.name,
+        image: user.image,
+        post_id: participTable.post_id
+      })
+      .from(participTable)
+      .leftJoin(user, eq(participTable.user_id, user.id))
+      .as("participQuery");
 
     const rows = await db
       .select({
@@ -97,10 +130,16 @@ export class PostRepository {
           post_id: imageQuery.post_id,
           image_url: imageQuery.image_url,
           position: imageQuery.position
+        },
+        participations: {
+          id: participQuery.id,
+          name: participQuery.name,
+          image: participQuery.image
         }
       })
       .from(postTable)
-      .leftJoin(imageQuery, eq(postTable.id, imageQuery.post_id));
+      .leftJoin(imageQuery, eq(postTable.id, imageQuery.post_id))
+      .leftJoin(participQuery, eq(postTable.id, participQuery.post_id));
 
     const posts = rows.reduce<Map<number, PopulatedPost>>((acc, row) => {
       let post = acc.get(row.id);
@@ -114,14 +153,26 @@ export class PostRepository {
           location_name: row.location_name,
           caption: row.caption,
           likes: row.likes,
-          images: []
+          images: [],
+          participations: []
         };
 
-        acc.set(row.id, post);
+        acc.set(row.id, post!);
       }
 
       if (row.image?.id !== null && row.image?.id !== undefined) {
-        post.images.push(row.image);
+        post?.images.push(row.image);
+      }
+
+      if (
+        row.participations?.id !== null &&
+        row.participations?.id !== undefined
+      ) {
+        post?.participations.push({
+          id: row.participations.id!,
+          name: row.participations.name!,
+          image: row.participations.image
+        });
       }
 
       return acc;
