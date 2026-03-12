@@ -49,6 +49,10 @@ export class PostService {
     return result;
   }
 
+  async getFromFollowing(id: string): Promise<PopulatedPost[]> {
+    return this.posts.getFromFollowing(id);
+  }
+
   async update(id: number, data: UpdatePostDto): Promise<Post | null> {
     return this.posts.update(id, data);
   }

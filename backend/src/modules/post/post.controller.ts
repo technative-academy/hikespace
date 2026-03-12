@@ -88,6 +88,19 @@ export class PostController {
     }
   };
 
+  getFromFollowing = async (req: Request, res: Response) => {
+    try {
+      const posts = await this.postService.getFromFollowing(req.user.id);
+
+      return res.status(200).json(posts);
+    } catch (error) {
+      return res.status(500).json({
+        message: "Error getting following posts",
+        error
+      });
+    }
+  };
+
   // PUT /posts/:id
   update = async (req: Request, res: Response) => {
     if (!req.user) {
