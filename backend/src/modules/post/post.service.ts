@@ -31,6 +31,11 @@ export class PostService {
           image.image_url = urls[idx];
         })
       );
+      await Promise.all(
+        post.participations.map(async (p) => {
+          if (p.image) p.image = await this.imageHandler.get(p.image);
+        })
+      );
     }
     return post;
   }
