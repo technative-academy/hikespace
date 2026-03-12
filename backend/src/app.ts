@@ -12,6 +12,7 @@ import { pinoHttp } from "pino-http";
 import { logger } from "#config/logger.js";
 import likeRouter from "#modules/like/like.router.js";
 import followRouter from "#modules/following/follow.router.js";
+import { checkAuth } from "#middleware/check-auth-midddleware.js";
 
 const app = express();
 
@@ -54,7 +55,7 @@ app.use(
     }
   })
 );
-
+app.use(checkAuth);
 app.use("/users", userRouter);
 app.use("/posts", postRouter);
 app.use("/participations", participRouter);
