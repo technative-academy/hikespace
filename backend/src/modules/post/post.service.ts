@@ -58,6 +58,14 @@ export class PostService {
     return this.posts.getFromFollowing(id);
   }
 
+  async getByUser(id: string): Promise<PopulatedPost[] | null> {
+    return this.posts.getByUser(id);
+  }
+
+  async likedByUser(id: string): Promise<PopulatedPost[] | null> {
+    return this.posts.likedByUser(id);
+  }
+
   async update(id: number, data: UpdatePostDto): Promise<Post | null> {
     return this.posts.update(id, data);
   }

@@ -1,5 +1,5 @@
 import { db } from "#db/db.js";
-import { likeTable, postTable } from "#db/schema.js";
+import { likeTable, postTable, user } from "#db/schema.js";
 import { eq, InferInsertModel, sql } from "drizzle-orm";
 import { Post, PopulatedPost } from "./post.zod.js";
 import { UserRepository } from "#modules/user/user.repository.js";
@@ -186,8 +186,45 @@ export class PostRepository {
           .from(postTable)
           .where(eq(postTable.owner_id, followed.follower.id));
 
+        return Promise.all(posts.map((post) => this.getPopulated(post.id, id)));
+      })
+    );
+
+    return result.flat().filter((p): p is PopulatedPost => p !== null);
+  }
+
+  async getByUser(user_id: string): Promise<PopulatedPost[] | null> {
+    let currentUser = await this.userRepository.getById(user_id);
+
+    if (!currentUser) {
+      return null;
+    }
+
+    const result = await Promise.all(
+      currentUser.posts.map((post) => this.getPopulated(post.id, user_id))
+    );
+
+    return result.flat().filter((p): p is PopulatedPost => p !== null);
+  }
+
+  async likedByUser(user_id: string): Promise<PopulatedPost[] | null> {
+    let currentUser = await this.userRepository.getById(user_id);
+
+    if (!currentUser) {
+      return null;
+    }
+
+    const result = await Promise.all(
+      currentUser.likes.map(async (like) => {
+        const postIds = await db
+          .select({ post_id: postTable.id })
+          .from(postTable)
+          .innerJoin(user, eq(user.id, postTable.owner_id))
+          .innerJoin(likeTable, eq(likeTable.post_id, postTable.id))
+          .where(eq(likeTable.id, like.id));
+
         return Promise.all(
-          posts.map((post) => this.getPopulated(post.id, id))
+          postIds.map((post) => this.getPopulated(post.post_id, user_id))
         );
       })
     );

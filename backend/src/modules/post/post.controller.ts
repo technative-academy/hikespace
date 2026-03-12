@@ -6,7 +6,7 @@ import {
   PostSchema,
   UpdatePostSchema
 } from "./post.zod.js";
-import { IdParamSchema } from "#utils/validators.js";
+import { IdParamSchema, IdStringParamSchema } from "#utils/validators.js";
 
 export class PostController {
   constructor(private readonly postService: PostService) {}
@@ -101,16 +101,62 @@ export class PostController {
     }
   };
 
-  getByUser = async (_req: Request, res: Response) => {
-    let posts = await this.postService.getAll();
+  // GET /posts/by-user/:id
+  getByUser = async (req: Request, res: Response) => {
+    const parsed = IdStringParamSchema.safeParse(req.params);
 
-    return res.status(200).json([posts[0]]);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: "Invalid id parameter",
+        errors: parsed.error.flatten()
+      });
+    }
+
+    try {
+      const posts = await this.postService.getByUser(parsed.data.id);
+
+      if (!posts) {
+        return res.status(404).json({
+          message: "User not found"
+        });
+      }
+
+      return res.status(200).json(posts);
+    } catch (error) {
+      return res.status(500).json({
+        message: "Error getting post by user ID",
+        error
+      });
+    }
   };
 
-  likedByUser = async (_req: Request, res: Response) => {
-    let posts = await this.postService.getAll();
+  // GET /posts/liked-by/:id
+  likedByUser = async (req: Request, res: Response) => {
+    const parsed = IdStringParamSchema.safeParse(req.params);
 
-    return res.status(200).json([posts[1]]);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: "Invalid id parameter",
+        errors: parsed.error.flatten()
+      });
+    }
+
+    try {
+      const posts = await this.postService.likedByUser(parsed.data.id);
+
+      if (!posts) {
+        return res.status(404).json({
+          message: "User not found"
+        });
+      }
+
+      return res.status(200).json(posts);
+    } catch (error) {
+      return res.status(500).json({
+        message: "Error getting post by user ID",
+        error
+      });
+    }
   };
 
   // PUT /posts/:id
