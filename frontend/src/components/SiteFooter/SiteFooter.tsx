@@ -1,5 +1,5 @@
+import logo from "../../../public/hike-space-logo.png";
 import styles from "./SiteFooter.module.css";
-import logo from "../../assets/images/hike-space-logo.png";
 
 function SiteFooter() {
   return (
