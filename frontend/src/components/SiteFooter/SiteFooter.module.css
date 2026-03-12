@@ -48,3 +48,12 @@ footer {
 .devSection li {
   margin-bottom: 0.25rem;
 }
+
+.copyright {
+  font-size: 0.875rem;
+  color: #ccc;
+  text-align: center;
+  margin-top: 2rem;
+  padding: 1rem 0;
+  border-top: 1px solid #eaeaea;
+}
