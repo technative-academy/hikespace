@@ -3,7 +3,9 @@
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow);
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
 }
 
 .inner {
@@ -13,4 +15,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+img {
+  width: 500px;
 }
