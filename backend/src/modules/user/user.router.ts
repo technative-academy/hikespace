@@ -4,6 +4,7 @@ import { UserController } from "./user.controller.js";
 import { UserRepository } from "./user.repository.js";
 import { UserService } from "./user.service.js";
 import { requireAuth } from "#middleware/auth-middleware.js";
+import { checkAuth } from "#middleware/check-auth-midddleware.js";
 
 const router = express.Router();
 const upload = multer();
@@ -13,8 +14,8 @@ const userService = new UserService(userRepo);
 const userController = new UserController(userService);
 
 router.get("/me", requireAuth, userController.getMe);
-router.get("/:id", userController.getById);
-router.get("/", userController.getAll);
+router.get("/:id", checkAuth, userController.getById);
+router.get("/", checkAuth, userController.getAll);
 router.put(
   "/avatar",
   requireAuth,

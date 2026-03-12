@@ -15,16 +15,22 @@ export class UserController {
         message: "Unauthorized"
       });
     }
+    try {
+      const user = await this.userService.getMe(req.user.id);
 
-    const user = await this.userService.getMe(req.user.id);
+      if (!user) {
+        return res.status(404).json({
+          message: "User not found"
+        });
+      }
 
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found"
+      return res.status(200).json(user);
+    } catch (error) {
+      return res.status(500).json({
+        message: "Failed to get user",
+        error
       });
     }
-
-    return res.status(200).json(user);
   };
 
   // GET /users/:id
@@ -38,7 +44,10 @@ export class UserController {
       });
     }
     try {
-      const user = await this.userService.get(parsedParams.data.id);
+      const user = await this.userService.get(
+        parsedParams.data.id,
+        req.user?.id
+      );
 
       if (!user) {
         return res.status(404).json({

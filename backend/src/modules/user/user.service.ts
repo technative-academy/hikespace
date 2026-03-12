@@ -1,14 +1,14 @@
 import type { UserRepository } from "./user.repository.js";
-import type { PublicUser, UserRow } from "./user.zod.js";
+import type { PublicUser, UserRow, MeUser } from "./user.zod.js";
 import { ImageHandler } from "#utils/image-handler.js";
 
 export class UserService {
-  constructor(private readonly users: UserRepository) { }
+  constructor(private readonly users: UserRepository) {}
 
   imageHandler = new ImageHandler();
 
-  async get(id: string): Promise<PublicUser | null> {
-    let getUser = await this.users.getPublicById(id);
+  async get(id: string, user_id?: string): Promise<PublicUser | null> {
+    let getUser = await this.users.getPublicById(id, user_id);
 
     if (!getUser) {
       return null;
@@ -21,7 +21,7 @@ export class UserService {
     return getUser;
   }
 
-  async getMe(id: string) {
+  async getMe(id: string): Promise<MeUser | null> {
     const user = await this.users.getById(id);
     if (!user) return null;
 
@@ -29,13 +29,7 @@ export class UserService {
       user.image = await this.imageHandler.get(user.image);
     }
 
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      imageKey: user.image,
-      image_url: user.image
-    };
+    return user;
   }
 
   async getAll(): Promise<PublicUser[]> {
@@ -66,7 +60,7 @@ export class UserService {
   }
 
   async prepareAccountDeletion(id: string): Promise<void | null> {
-    let user: UserRow | null = await this.users.getById(id);
+    let user: MeUser | null = await this.users.getById(id);
 
     if (!user) {
       return null;
