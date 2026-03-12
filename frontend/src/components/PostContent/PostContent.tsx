@@ -23,13 +23,13 @@ import EditPostModal from "./EditPostModal";
 
 const toQueryString = (list: Point[]) => list.map(([lat, lng]) => `${lat},${lng}`).join(";");
 
-function FitBounds({ markers }: { markers: any[] }) {
+function FitBounds({ markers }: { markers: [number, number][] }) {
   const map = useMap();
   useEffect(() => {
     if (markers.length >= 2) {
       const first = markers[0];
       const last = markers[markers.length - 1];
-      map.fitBounds([first, last]);
+      map.fitBounds([[first[1], first[0]], [last[1], last[0]]]);
     }
   }, [markers, map]);
   return null;
@@ -160,7 +160,13 @@ export default function PostContent() {
               <HeartIcon className={cn("size-4", isLiked && "fill-white text-white")} />
               <span className={cn(isLiked && "text-white")}>{post.like_count ?? 42}</span>
             </Button>
-            {isOwner && <EditPostModal post={post} onSuccess={() => mutate(`/api/posts/${id}`)} onDelete={handleDelete} />}
+            {isOwner && (
+              <EditPostModal
+                post={post}
+                onSuccess={() => mutate(`/api/posts/${id}`)}
+                onDelete={handleDelete}
+              />
+            )}
           </div>
         </div>
         <a
@@ -205,7 +211,6 @@ export default function PostContent() {
         </Carousel>
         <p>{post.caption}</p>
       </center>
-
     </div>
   );
 }
