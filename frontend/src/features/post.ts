@@ -8,6 +8,11 @@ interface RouteData {
   coordinates: Point[];
 }
 
+export interface PostImage {
+  id: number;
+  image_url: string;
+}
+
 export interface Post {
   id: number;
   owner_id: number;
@@ -16,6 +21,9 @@ export interface Post {
   location_name: string;
   caption: string;
   like_count?: number;
+  liked_id?: number | null;
+  likes?: number;
+  images?: PostImage[];
 }
 
 export function usePost(id: number | undefined) {
@@ -26,9 +34,10 @@ export function usePost(id: number | undefined) {
   return { post: data as Post | undefined, isLoading, error: error };
 }
 
-export function useLike(postId: number | undefined) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeId, setLikeId] = useState<number | null>(null);
+export function useLike(postId: number | undefined, initialLikedId?: number | null, initialLikes?: number) {
+  const [isLiked, setIsLiked] = useState(!!initialLikedId);
+  const [likeId, setLikeId] = useState<number | null>(initialLikedId ?? null);
+  const [likeCount, _setLikeCount] = useState(initialLikes ?? 0);
   const [pending, setPending] = useState(false);
 
   async function toggle() {
@@ -58,5 +67,5 @@ export function useLike(postId: number | undefined) {
     }
   }
 
-  return { isLiked, pending, toggle };
+  return { isLiked, likeCount, pending, toggle };
 }
