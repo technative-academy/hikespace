@@ -1,9 +1,9 @@
 import type { UserRepository } from "./user.repository.js";
 import type { PublicUser, UserRow, MeUser } from "./user.zod.js";
-import { ImageHandler } from "#utils/imae-handler.js";
+import { ImageHandler } from "#utils/image-handler.js";
 
 export class UserService {
-  constructor(private readonly users: UserRepository) { }
+  constructor(private readonly users: UserRepository) {}
 
   imageHandler = new ImageHandler();
 
