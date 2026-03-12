@@ -1,9 +1,14 @@
 import type { PostRepository } from "./post.repository.js";
-import type { Post, PopulatedPost, CreatePostDto, UpdatePostDto } from "./post.zod.js";
+import type {
+  Post,
+  PopulatedPost,
+  CreatePostDto,
+  UpdatePostDto
+} from "./post.zod.js";
 import { ImageHandler } from "#utils/image-handler.js";
 
 export class PostService {
-  constructor(private readonly posts: PostRepository) { }
+  constructor(private readonly posts: PostRepository) {}
 
   imageHandler = new ImageHandler();
 
@@ -17,11 +22,11 @@ export class PostService {
     });
   }
 
-  async get(id: number): Promise<PopulatedPost | null> {
-    let post = await this.posts.get(id);
+  async get(id: number, userId: string): Promise<PopulatedPost | null> {
+    let post = await this.posts.get(id, userId);
     if (post) {
       let urls = await this.imageHandler.getMany(post.images);
-        await Promise.all(
+      await Promise.all(
         post.images.map(async (image, idx) => {
           image.image_url = urls[idx];
         })

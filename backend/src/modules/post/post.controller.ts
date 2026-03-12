@@ -53,15 +53,25 @@ export class PostController {
       });
     }
 
-    const post = await this.postService.get(parsedParams.data.id);
+    try {
+      const post = await this.postService.get(
+        parsedParams.data.id,
+        req.user.id
+      );
 
-    if (!post) {
-      return res.status(404).json({
-        message: "Post not found"
+      if (!post) {
+        return res.status(404).json({
+          message: "Post not found"
+        });
+      }
+
+      return res.status(200).json(PostPopulatedSchema.parse(post));
+    } catch (error) {
+      return res.status(500).json({
+        message: "Invalid id parameter",
+        error
       });
     }
-
-    return res.status(200).json(PostPopulatedSchema.parse(post));
   };
 
   // GET /posts/
@@ -142,7 +152,7 @@ export class PostController {
       });
     }
 
-    const post = await this.postService.get(parsedParams.data.id);
+    const post = await this.postService.get(parsedParams.data.id, req.user.id);
 
     if (!post) {
       return res.status(404).json({
