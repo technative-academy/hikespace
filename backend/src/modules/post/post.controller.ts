@@ -101,16 +101,16 @@ export class PostController {
     }
   };
 
-  getByUser = async (req: Request, res: Response) => {
+  getByUser = async (_req: Request, res: Response) => {
     let posts = await this.postService.getAll();
 
-    return res.status(200).json(posts[0]);
+    return res.status(200).json([posts[0]]);
   };
 
-  likedByUser = async (req: Request, res: Response) => {
+  likedByUser = async (_req: Request, res: Response) => {
     let posts = await this.postService.getAll();
 
-    return res.status(200).json(posts[1]);
+    return res.status(200).json([posts[1]]);
   };
 
   // PUT /posts/:id

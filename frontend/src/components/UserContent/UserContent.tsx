@@ -1,9 +1,9 @@
-import type { Post } from "@/features/post";
+import { useUserPosts, useUserLikedPosts } from "@/features/post";
 import { useFollow, useUser } from "@/features/user";
 import { authClient } from "@/lib/auth-client";
 import { UserMinusIcon, UserPlusIcon, UsersIcon } from "lucide-react";
 import { useParams } from "react-router-dom";
-import useSWR, { mutate } from "swr";
+import { mutate } from "swr";
 import FeedPost from "../FeedPost/FeedPost";
 import { Grid } from "../Grid/Grid";
 import { Loading } from "../Loading/Loading";
@@ -26,7 +26,8 @@ export default function UserContent() {
   const { data: session } = authClient.useSession();
 
   const { user, error: userError, isLoading: userIsLoading } = useUser(id);
-  const { data: posts, error, isLoading } = useSWR<Post[]>("/api/posts");
+  const { posts, isLoading } = useUserPosts(id);
+  const { posts: likedPosts, isLoading: likedLoading } = useUserLikedPosts(id);
   const { isFollowing, pending: followPending, toggle: toggleFollow } = useFollow(id, user?.isFollowed);
   const followerCount = (user?.followersCount ?? 0) + (isFollowing ? 1 : 0) - (user?.isFollowed ? 1 : 0);
 
@@ -46,7 +47,6 @@ export default function UserContent() {
   }
 
   if (userError) throw userError;
-  if (error) throw error;
 
   const coverImage = COVER_IMAGES[
     // Hash the user ID as a number, then picks a random cover image based on that
@@ -106,22 +106,18 @@ export default function UserContent() {
             <TabsTrigger value="likes">Liked posts</TabsTrigger>
           </TabsList>
           <TabsContent value="feed">
-            {(!isLoading)
-              ? (
-                <Grid minWidth="12rem">
-                  {posts!.map((post) => <FeedPost key={post.id} post={post} />)}
-                </Grid>
-              )
-              : <Loading thing="posts" />}
+            {isLoading ? <Loading thing="posts" /> : (
+              <Grid minWidth="12rem">
+                {posts.map((post) => <FeedPost key={post.id} post={post} />)}
+              </Grid>
+            )}
           </TabsContent>
           <TabsContent value="likes">
-            {(!isLoading)
-              ? (
-                <Grid minWidth="12rem">
-                  {posts!.map((post) => <FeedPost key={post.id} post={post} />)}
-                </Grid>
-              )
-              : <Loading thing="posts" />}
+            {likedLoading ? <Loading thing="posts" /> : (
+              <Grid minWidth="12rem">
+                {likedPosts.map((post) => <FeedPost key={post.id} post={post} />)}
+              </Grid>
+            )}
           </TabsContent>
         </Tabs>
       </div>

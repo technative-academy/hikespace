@@ -35,6 +35,26 @@ export function usePost(id: number | undefined) {
   return { post: data as Post | undefined, isLoading, error: error };
 }
 
+export function usePosts() {
+  const { data, error, isLoading } = useSWR<Post[]>("/api/posts");
+  return { posts: data ?? [], isLoading, error };
+}
+
+export function useFollowingPosts(enabled: boolean) {
+  const { data, error, isLoading } = useSWR<Post[]>(enabled ? "/api/posts/following" : null);
+  return { posts: data ?? [], isLoading, error };
+}
+
+export function useUserPosts(userId: string | undefined) {
+  const { data, error, isLoading } = useSWR<Post[]>(userId ? `/api/posts/by-user/${userId}` : null);
+  return { posts: data ?? [], isLoading, error };
+}
+
+export function useUserLikedPosts(userId: string | undefined) {
+  const { data, error, isLoading } = useSWR<Post[]>(userId ? `/api/posts/liked-by/${userId}` : null);
+  return { posts: data ?? [], isLoading, error };
+}
+
 export function useLike(postId: number | undefined, likedId: number | null | undefined, initialCount = 0) {
   const [likeId, setLikeId] = useState<number | null>(likedId ?? null);
   const [likeCount, setLikeCount] = useState(initialCount);

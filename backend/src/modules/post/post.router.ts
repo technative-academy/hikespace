@@ -11,11 +11,11 @@ const postService = new PostService(postRepo);
 const postController = new PostController(postService);
 
 router.post("/", requireAuth, postController.create);
-router.get("/:id", postController.get);
-router.get("/", postController.getAll);
 router.get("/following", requireAuth, postController.getFromFollowing);
 router.get("/by-user/:id", postController.getByUser);
 router.get("/liked-by/:id", postController.likedByUser);
+router.get("/", postController.getAll);
+router.get("/:id", postController.get);
 router.put("/:id", requireAuth, postController.update);
 router.delete("/:id", requireAuth, postController.delete);
 
