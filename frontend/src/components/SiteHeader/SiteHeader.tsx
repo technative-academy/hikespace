@@ -2,7 +2,7 @@ import { useSessionUser } from "@/features/user";
 import { authClient } from "@/lib/auth-client";
 import { LogOutIcon, Menu, UserIcon } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
-import logo from "../../../public/hike-space-logo.png";
+import logo from "/src/assets/images/hike-space-logo.png";
 import { HStack, VStack } from "../Stack/Stack";
 import { Button } from "../ui/button";
 import {
