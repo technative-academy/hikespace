@@ -184,7 +184,7 @@ export class PostRepository {
         const posts = await db
           .select()
           .from(postTable)
-          .where(eq(postTable.owner_id, followed.follower.id));
+          .where(eq(postTable.owner_id, followed.followed.id));
 
         return Promise.all(posts.map((post) => this.getPopulated(post.id, id)));
       })
