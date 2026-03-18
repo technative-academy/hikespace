@@ -42,6 +42,39 @@ export class PostService {
 
   async getAll(): Promise<PopulatedPost[]> {
     let posts = await this.posts.getAll();
+    return await this.assignImagesUrl(posts);
+  }
+
+  async getFromFollowing(id: string): Promise<PopulatedPost[]> {
+    let posts = await this.posts.getFromFollowing(id);
+    return await this.assignImagesUrl(posts);
+  }
+
+  async getByUser(id: string): Promise<PopulatedPost[] | null> {
+    const posts = await this.posts.getByUser(id);
+    if (!posts) {
+      return null;
+    }
+    return await this.assignImagesUrl(posts);
+  }
+
+  async likedByUser(id: string): Promise<PopulatedPost[] | null> {
+    let posts = await this.posts.likedByUser(id);
+    if (!posts) {
+      return null;
+    }
+    return await this.assignImagesUrl(posts);
+  }
+
+  async update(id: number, data: UpdatePostDto): Promise<Post | null> {
+    return this.posts.update(id, data);
+  }
+
+  async delete(id: number): Promise<void> {
+    return this.posts.delete(id);
+  }
+
+  async assignImagesUrl(posts: PopulatedPost[]): Promise<PopulatedPost[]> {
     let result = await Promise.all(
       posts.map(async (post) => {
         let urls = await this.imageHandler.getMany(post.images);
@@ -52,25 +85,5 @@ export class PostService {
       })
     );
     return result;
-  }
-
-  async getFromFollowing(id: string): Promise<PopulatedPost[]> {
-    return this.posts.getFromFollowing(id);
-  }
-
-  async getByUser(id: string): Promise<PopulatedPost[] | null> {
-    return this.posts.getByUser(id);
-  }
-
-  async likedByUser(id: string): Promise<PopulatedPost[] | null> {
-    return this.posts.likedByUser(id);
-  }
-
-  async update(id: number, data: UpdatePostDto): Promise<Post | null> {
-    return this.posts.update(id, data);
-  }
-
-  async delete(id: number): Promise<void> {
-    return this.posts.delete(id);
   }
 }
