@@ -84,7 +84,10 @@ export class PostRepository {
                   where "like"."post_id" = ${postTable.id}
                 )
               `.as("likes"),
-        like_id: sql<number | null>`
+        like_id:
+          userId === null
+            ? sql<number | null>`NULL`.as("like_id")
+            : sql<number | null>`
       (
         select "like"."id"
         from ${likeTable}

@@ -401,6 +401,48 @@ const postPaths = {
       }
     }
   },
+  "/posts/following": {
+    get: {
+      summary: "Get posts from followed users",
+      tags: ["Posts"],
+      security: AuthSecurity,
+      responses: {
+        "200": jsonResponse(z.array(PopulatedPostSchema)),
+        "401": { description: "Unauthorized" },
+        "500": { description: "Server error" }
+      }
+    }
+  },
+  "/posts/by-user/{id}": {
+    get: {
+      summary: "Get posts by user id",
+      tags: ["Posts"],
+      requestParams: {
+        path: UserIdPathParams
+      },
+      responses: {
+        "200": jsonResponse(z.array(PopulatedPostSchema)),
+        "400": { description: "Bad request" },
+        "404": { description: "User not found" },
+        "500": { description: "Server error" }
+      }
+    }
+  },
+  "/posts/liked-by/{id}": {
+    get: {
+      summary: "Get posts liked by user id",
+      tags: ["Posts"],
+      requestParams: {
+        path: UserIdPathParams
+      },
+      responses: {
+        "200": jsonResponse(z.array(PopulatedPostSchema)),
+        "400": { description: "Bad request" },
+        "404": { description: "User not found" },
+        "500": { description: "Server error" }
+      }
+    }
+  },
 
   "/posts/{id}": {
     get: {
